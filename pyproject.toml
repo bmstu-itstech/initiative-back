@@ -157,7 +157,7 @@ mccabe.max-complexity = 6
 pydocstyle.convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"server/apps/*/migrations/*.py" = ["D101", "E501", "RUF012"]
+"server/apps/*/migrations/*.py" = ["D101", "E501", "RUF012", "RUF001"]
 "server/common/typing/*.py" = ["F401"]
 "server/implemented.py" = ["PLC0415", "D103"]
 "tests/*.py" = ["S101"]
