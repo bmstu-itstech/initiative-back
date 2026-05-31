@@ -6,13 +6,13 @@ pytestmark = pytest.mark.django_db
 
 
 def test_member_str_representation():
-    """Проверка строкового представления активиста (с отчеством и без)."""
+    """Проверка строкового представления активиста (с отчеством и без)."""  # noqa: RUF002
     member_full = Member.objects.create(
         first_name='Иван',
         last_name='Иванов',
         patronymic='Иванович',
         telegram='ivan_ivanov',
-        group='ИУ5-11Б',
+        group='ИУ5-11Б',  # noqa: RUF001
     )
     assert str(member_full) == 'Иванов Иван Иванович'
 
