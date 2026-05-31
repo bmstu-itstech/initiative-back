@@ -5,7 +5,7 @@ from server.apps.members.models import Member
 pytestmark = pytest.mark.django_db
 
 
-def test_member_str_representation():
+def test_member_str_representation() -> None:
     """Проверка строкового представления активиста (с отчеством и без)."""  # noqa: RUF002
     member_full = Member.objects.create(
         first_name='Иван',
@@ -24,7 +24,7 @@ def test_member_str_representation():
     assert str(member_short) == 'Петров Петр'
 
 
-def test_soft_delete_and_restore():
+def test_soft_delete_and_restore() -> None:
     """Проверка механизма мягкого удаления и восстановления."""
     member = Member.objects.create(
         first_name='Алексей',
@@ -38,7 +38,8 @@ def test_soft_delete_and_restore():
 
     # Удаляем (Soft Delete)
     member.delete()
-    assert member.is_deleted is True
+    member.refresh_from_db()
+    assert member.is_deleted
     assert member.deleted_at is not None
 
     # ActiveManager (objects) должен скрыть запись
@@ -48,6 +49,7 @@ def test_soft_delete_and_restore():
 
     # Восстанавливаем
     member.restore()
-    assert member.is_deleted is False
+    member.refresh_from_db()
+    assert not member.is_deleted
     assert member.deleted_at is None
     assert Member.objects.count() == 1
