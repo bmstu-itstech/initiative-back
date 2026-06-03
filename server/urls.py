@@ -27,6 +27,7 @@ from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.routing import Router, build_404_handler, build_500_handler, path
 from health_check.views import HealthCheckView
 
+from server.apps.auth.controllers.urls import router as auth_router
 from server.apps.members.controllers.urls import router as members_router
 
 admin.autodiscover()
@@ -34,6 +35,10 @@ admin.autodiscover()
 router = Router(
     'api/',
     [
+        path(
+            'auth/',
+            include((auth_router.urls, 'auth'), namespace='auth'),
+        ),
         path(
             'members/',
             include((members_router.urls, 'members'), namespace='members'),

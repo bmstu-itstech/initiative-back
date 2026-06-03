@@ -1,5 +1,6 @@
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import final
+from typing import Any, final
 
 import msgspec
 import pytest
@@ -19,6 +20,7 @@ class TestDirectionsAPI:
         self,
         dmr_client: DMRClient,
         direction_in: DirectionIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное создание направления."""
         payload = msgspec.to_builtins(direction_in)
@@ -26,6 +28,7 @@ class TestDirectionsAPI:
         response = dmr_client.post(
             reverse('api:members:directions'),
             data=payload,
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.CREATED
@@ -38,6 +41,7 @@ class TestDirectionsAPI:
         dmr_client: DMRClient,
         direction: Direction,
         direction_in: DirectionIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка создания направления с существующим именем (Conflict)."""  # noqa: RUF002
         direction_in.name = direction.name
@@ -46,6 +50,7 @@ class TestDirectionsAPI:
         response = dmr_client.post(
             reverse('api:members:directions'),
             data=payload,
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.CONFLICT
@@ -55,9 +60,13 @@ class TestDirectionsAPI:
         self,
         dmr_client: DMRClient,
         direction: Direction,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Получение списка направлений."""
-        response = dmr_client.get(reverse('api:members:directions'))
+        response = dmr_client.get(
+            reverse('api:members:directions'),
+            **auth_headers_editor,
+        )
 
         assert response.status_code == HTTPStatus.OK
         data = response.json()
@@ -69,6 +78,7 @@ class TestDirectionsAPI:
         self,
         dmr_client: DMRClient,
         direction: Direction,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Получение конкретного направления по ID."""
         response = dmr_client.get(
@@ -76,19 +86,25 @@ class TestDirectionsAPI:
                 'api:members:direction_detail',
                 kwargs={'direction_id': direction.id},
             ),
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.OK
         direction_out = msgspec.convert(response.json(), type=DirectionOut)
         assert direction_out.id == direction.id
 
-    def test_direction_get_not_found(self, dmr_client: DMRClient) -> None:
+    def test_direction_get_not_found(
+        self,
+        dmr_client: DMRClient,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
         """Ошибка получения несуществующего направления."""
         response = dmr_client.get(
             reverse(
                 'api:members:direction_detail',
                 kwargs={'direction_id': 999999},
             ),
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.NOT_FOUND
@@ -98,6 +114,7 @@ class TestDirectionsAPI:
         dmr_client: DMRClient,
         direction: Direction,
         direction_in: DirectionIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное обновление направления."""
         direction_in.name = 'Обновленное Имя'
@@ -109,6 +126,7 @@ class TestDirectionsAPI:
                 kwargs={'direction_id': direction.id},
             ),
             data=payload,
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -119,6 +137,7 @@ class TestDirectionsAPI:
         self,
         dmr_client: DMRClient,
         direction: Direction,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Мягкое удаление направления."""
         response = dmr_client.delete(
@@ -126,6 +145,7 @@ class TestDirectionsAPI:
                 'api:members:direction_detail',
                 kwargs={'direction_id': direction.id},
             ),
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -136,6 +156,7 @@ class TestDirectionsAPI:
         self,
         dmr_client: DMRClient,
         direction_in: DirectionIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка обновления несуществующего направления."""
         response = dmr_client.put(
@@ -144,6 +165,7 @@ class TestDirectionsAPI:
                 kwargs={'direction_id': 999999},
             ),
             data=msgspec.to_builtins(direction_in),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -152,6 +174,7 @@ class TestDirectionsAPI:
         dmr_client: DMRClient,
         direction: Direction,
         direction_in: DirectionIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка обновления направления: такое имя уже занято (Conflict)."""
         other_direction = Direction.objects.create(name='Другое направление')
@@ -165,6 +188,7 @@ class TestDirectionsAPI:
                 kwargs={'direction_id': direction.id},
             ),
             data=payload,
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.CONFLICT

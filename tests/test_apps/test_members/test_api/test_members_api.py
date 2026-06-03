@@ -1,5 +1,6 @@
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import final
+from typing import Any, final
 
 import msgspec
 import pytest
@@ -20,12 +21,14 @@ class TestMembersAPI:
         dmr_client: DMRClient,
         department: Department,
         member_in: MemberIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное создание активиста."""
         member_in.department_ids = [department.id]
         response = dmr_client.post(
             reverse('api:members:members'),
             data=msgspec.to_builtins(member_in),
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.CREATED
@@ -37,33 +40,46 @@ class TestMembersAPI:
         self,
         dmr_client: DMRClient,
         member: Member,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное получение списка активистов."""
         response = dmr_client.get(
             reverse('api:members:members'),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) >= 1
 
-    def test_member_delete(self, dmr_client: DMRClient, member: Member) -> None:
+    def test_member_delete(
+        self,
+        dmr_client: DMRClient,
+        member: Member,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
         """Мягкое удаление активиста."""
         response = dmr_client.delete(
             reverse(
                 'api:members:member_detail',
                 kwargs={'member_id': member.id},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         member.refresh_from_db()
         assert member.is_deleted is True
 
-    def test_member_get_not_found(self, dmr_client: DMRClient) -> None:
+    def test_member_get_not_found(
+        self,
+        dmr_client: DMRClient,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
         """Ошибка получения несуществующего активиста."""
         response = dmr_client.get(
             reverse(
                 'api:members:member_detail',
                 kwargs={'member_id': 999999},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -72,6 +88,7 @@ class TestMembersAPI:
         dmr_client: DMRClient,
         member: Member,
         member_in: MemberIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка создания активиста с существующим Telegram (Conflict)."""  # noqa: RUF002
         member_in.telegram = member.telegram
@@ -80,6 +97,7 @@ class TestMembersAPI:
         response = dmr_client.post(
             reverse('api:members:members'),
             data=payload,
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.CONFLICT
 
@@ -87,6 +105,7 @@ class TestMembersAPI:
         self,
         dmr_client: DMRClient,
         member: Member,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное получение конкретного активиста."""
         response = dmr_client.get(
@@ -94,6 +113,7 @@ class TestMembersAPI:
                 'api:members:member_detail',
                 kwargs={'member_id': member.id},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         assert response.json()['id'] == member.id
@@ -104,6 +124,7 @@ class TestMembersAPI:
         member: Member,
         member_in: MemberIn,
         department: Department,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное обновление активиста (PUT)."""
         member_in.first_name = 'ОбновленноеИмя'
@@ -119,6 +140,7 @@ class TestMembersAPI:
                 kwargs={'member_id': member.id},
             ),
             data=payload,
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         assert response.json()['first_name'] == 'ОбновленноеИмя'
@@ -128,6 +150,7 @@ class TestMembersAPI:
         dmr_client: DMRClient,
         member: Member,
         member_in: MemberIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка обновления активиста: Telegram занят (Conflict)."""
         second_member = Member.objects.create(
@@ -144,6 +167,7 @@ class TestMembersAPI:
                 kwargs={'member_id': member.id},
             ),
             data=payload,
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.CONFLICT
 
@@ -152,6 +176,7 @@ class TestMembersAPI:
         dmr_client: DMRClient,
         member: Member,
         department: Department,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное получение активистов отдела."""
         member.departments.add(department)
@@ -160,6 +185,7 @@ class TestMembersAPI:
                 'api:members:department_members',
                 kwargs={'department_id': department.id},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) >= 1
@@ -169,6 +195,7 @@ class TestMembersAPI:
         dmr_client: DMRClient,
         member: Member,
         department: Department,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное получение активистов направления."""
         member.departments.add(department)
@@ -177,6 +204,7 @@ class TestMembersAPI:
                 'api:members:direction_members',
                 kwargs={'direction_id': department.direction_id},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) >= 1

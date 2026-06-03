@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import final, override
 
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
 from dmr import Body, Controller, Query
@@ -8,7 +9,11 @@ from dmr.endpoint import Endpoint, validate
 from dmr.errors import ErrorType
 from dmr.metadata import ResponseSpec
 from dmr.plugins.msgspec import MsgspecSerializer
+from dmr.security import AuthenticatedHttpRequest
+from dmr.security.jwt.auth import JWTSyncAuth
 
+from server.apps.auth.logic.permissions import require_role
+from server.apps.auth.logic.roles import Role
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
 from server.apps.members.logic.usecases.members import (
@@ -29,13 +34,20 @@ from server.common.di import HasContainer
 
 
 @final
-class MembersController(HasContainer, Controller[MsgspecSerializer]):
+class MembersController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Контроллер для списка активистов и создания новых."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(list[MemberOut], status_code=HTTPStatus.OK),
         tags=['Активисты'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self, parsed_query: Query[MemberFilterQuery]) -> HttpResponse:
         """Получение списка активистов с фильтрацией и пагинацией."""  # noqa: RUF002
         result = self.resolve(GetMemberList)(parsed_query)
@@ -47,6 +59,7 @@ class MembersController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.CONFLICT),
         tags=['Активисты'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def post(self, parsed_body: Body[MemberIn]) -> HttpResponse:
         """Создание нового активиста."""
         result = self.resolve(CreateMember)(parsed_body)
@@ -77,14 +90,21 @@ class MembersController(HasContainer, Controller[MsgspecSerializer]):
 
 
 @final
-class MemberDetailController(HasContainer, Controller[MsgspecSerializer]):
+class MemberDetailController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Управление конкретным активистом."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(MemberOut, status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Получение детальной информации об активисте."""  # noqa: RUF002
         result = self.resolve(GetMember)(self.kwargs['member_id'])
@@ -97,6 +117,7 @@ class MemberDetailController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def put(self, parsed_body: Body[MemberIn]) -> HttpResponse:
         """Полное обновление данных активиста."""
         result = self.resolve(UpdateMember)(
@@ -110,6 +131,7 @@ class MemberDetailController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def delete(self) -> HttpResponse:
         """Мягкое удаление активиста."""
         result = self.resolve(DeleteMember)(self.kwargs['member_id'])
@@ -147,14 +169,21 @@ class MemberDetailController(HasContainer, Controller[MsgspecSerializer]):
 
 
 @final
-class DepartmentMembersController(HasContainer, Controller[MsgspecSerializer]):
+class DepartmentMembersController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Контроллер для вывода активистов отдела."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(list[MemberOut], status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Вывод всех активистов конкретного отдела."""
         result = self.resolve(GetMembersByDepartment)(
@@ -164,14 +193,21 @@ class DepartmentMembersController(HasContainer, Controller[MsgspecSerializer]):
 
 
 @final
-class DirectionMembersController(HasContainer, Controller[MsgspecSerializer]):
+class DirectionMembersController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Контроллер для вывода активистов направления."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(list[MemberOut], status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Вывод всех активистов конкретного направления."""
         result = self.resolve(GetMembersByDirection)(

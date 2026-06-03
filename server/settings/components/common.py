@@ -21,6 +21,7 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 INSTALLED_APPS: tuple[str, ...] = (
     # Your apps go here:
+    'server.apps.auth',
     'server.apps.members',
     # Default django apps:
     'django.contrib.auth',
@@ -34,6 +35,7 @@ INSTALLED_APPS: tuple[str, ...] = (
     'django.contrib.admindocs',
     # django-modern-rest:
     'dmr',
+    'dmr.security.jwt.blocklist',
     'corsheaders',
     # Security:
     'axes',

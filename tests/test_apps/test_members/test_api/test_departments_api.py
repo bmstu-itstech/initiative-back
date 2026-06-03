@@ -1,5 +1,6 @@
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import final
+from typing import Any, final
 
 import msgspec
 import pytest
@@ -20,6 +21,7 @@ class TestDepartmentsAPI:
         dmr_client: DMRClient,
         direction: Direction,
         department_in: DepartmentIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное создание отдела."""
         department_in.direction_id = direction.id
@@ -28,6 +30,7 @@ class TestDepartmentsAPI:
         response = dmr_client.post(
             reverse('api:members:departments'),
             data=payload,
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.CREATED
 
@@ -39,9 +42,13 @@ class TestDepartmentsAPI:
         self,
         dmr_client: DMRClient,
         department: Department,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Получение списка отделов."""
-        response = dmr_client.get(reverse('api:members:departments'))
+        response = dmr_client.get(
+            reverse('api:members:departments'),
+            **auth_headers_editor,
+        )
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) >= 1
 
@@ -51,6 +58,7 @@ class TestDepartmentsAPI:
         department: Department,
         direction: Direction,
         department_in: DepartmentIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное обновление отдела."""
         department_in.direction_id = direction.id
@@ -61,6 +69,7 @@ class TestDepartmentsAPI:
                 kwargs={'department_id': department.id},
             ),
             data=msgspec.to_builtins(department_in),
+            **auth_headers_editor,
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -71,6 +80,7 @@ class TestDepartmentsAPI:
         self,
         dmr_client: DMRClient,
         department: Department,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Мягкое удаление отдела."""
         response = dmr_client.delete(
@@ -78,18 +88,24 @@ class TestDepartmentsAPI:
                 'api:members:department_detail',
                 kwargs={'department_id': department.id},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         department.refresh_from_db()
         assert department.is_deleted is True
 
-    def test_department_get_not_found(self, dmr_client: DMRClient) -> None:
+    def test_department_get_not_found(
+        self,
+        dmr_client: DMRClient,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
         """Ошибка получения несуществующего отдела."""
         response = dmr_client.get(
             reverse(
                 'api:members:department_detail',
                 kwargs={'department_id': 999999},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -99,6 +115,7 @@ class TestDepartmentsAPI:
         department: Department,
         direction: Direction,
         department_in: DepartmentIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка создания дубликата отдела (Conflict)."""
         department_in.name = department.name
@@ -108,6 +125,7 @@ class TestDepartmentsAPI:
         response = dmr_client.post(
             reverse('api:members:departments'),
             data=payload,
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.CONFLICT
 
@@ -115,6 +133,7 @@ class TestDepartmentsAPI:
         self,
         dmr_client: DMRClient,
         department_in: DepartmentIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка обновления несуществующего отдела."""
         response = dmr_client.put(
@@ -123,6 +142,7 @@ class TestDepartmentsAPI:
                 kwargs={'department_id': 999999},
             ),
             data=msgspec.to_builtins(department_in),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -130,6 +150,7 @@ class TestDepartmentsAPI:
         self,
         dmr_client: DMRClient,
         department: Department,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Успешное получение конкретного отдела по ID."""
         response = dmr_client.get(
@@ -137,6 +158,7 @@ class TestDepartmentsAPI:
                 'api:members:department_detail',
                 kwargs={'department_id': department.id},
             ),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.OK
         assert response.json()['id'] == department.id
@@ -147,6 +169,7 @@ class TestDepartmentsAPI:
         department: Department,
         direction: Direction,
         department_in: DepartmentIn,
+        auth_headers_editor: Mapping[str, Any],
     ) -> None:
         """Ошибка обновления отдела: такое имя уже занято (Conflict)."""
         other_department = Department.objects.create(
@@ -163,5 +186,6 @@ class TestDepartmentsAPI:
                 kwargs={'department_id': department.id},
             ),
             data=msgspec.to_builtins(department_in),
+            **auth_headers_editor,
         )
         assert response.status_code == HTTPStatus.CONFLICT

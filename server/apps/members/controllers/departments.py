@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import final, override
 
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
 from dmr import Body, Controller
@@ -8,7 +9,11 @@ from dmr.endpoint import Endpoint, validate
 from dmr.errors import ErrorType
 from dmr.metadata import ResponseSpec
 from dmr.plugins.msgspec import MsgspecSerializer
+from dmr.security import AuthenticatedHttpRequest
+from dmr.security.jwt.auth import JWTSyncAuth
 
+from server.apps.auth.logic.permissions import require_role
+from server.apps.auth.logic.roles import Role
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.usecases.departments import (
     CreateDepartment,
@@ -26,13 +31,20 @@ from server.common.di import HasContainer
 
 
 @final
-class DepartmentsController(HasContainer, Controller[MsgspecSerializer]):
+class DepartmentsController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Контроллер для списка отделов и создания новых."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(list[DepartmentOut], status_code=HTTPStatus.OK),
         tags=['Отделы'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Получение списка всех отделов."""
         result = self.resolve(GetDepartmentList)()
@@ -44,6 +56,7 @@ class DepartmentsController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.CONFLICT),
         tags=['Отделы'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def post(self, parsed_body: Body[DepartmentIn]) -> HttpResponse:
         """Создание нового отдела."""
         result = self.resolve(CreateDepartment)(parsed_body)
@@ -75,14 +88,21 @@ class DepartmentsController(HasContainer, Controller[MsgspecSerializer]):
 
 
 @final
-class DepartmentDetailController(HasContainer, Controller[MsgspecSerializer]):
+class DepartmentDetailController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Управление конкретным отделом."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(DepartmentOut, status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Отделы'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Получение данных выбранного отдела."""
         result = self.resolve(GetDepartment)(
@@ -97,6 +117,7 @@ class DepartmentDetailController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Отделы'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def put(self, parsed_body: Body[DepartmentIn]) -> HttpResponse:
         """Полное обновление данных выбранного отдела."""
         result = self.resolve(UpdateDepartment)(
@@ -110,6 +131,7 @@ class DepartmentDetailController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Отделы'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def delete(self) -> HttpResponse:
         """Мягкое удаление выбранного отдела."""
         result = self.resolve(DeleteDepartment)(

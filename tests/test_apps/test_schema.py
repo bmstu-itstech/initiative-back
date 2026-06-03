@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 import schemathesis as st
@@ -18,6 +19,12 @@ def _disable_logging(settings: LazySettings) -> Iterator[None]:
     logging.disable(logging.CRITICAL)
     yield
     logging.disable(logging.NOTSET)
+
+
+@pytest.fixture(autouse=True)
+def _disable_axes(settings: Any) -> None:
+    """Отключаем защиту от брутфорса django-axes для прогона всех тестов."""
+    settings.AXES_ENABLED = False
 
 
 # NOTE: The `db` fixture is required to enable database access.

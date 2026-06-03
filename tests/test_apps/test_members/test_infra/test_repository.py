@@ -333,3 +333,19 @@ class TestMemberRepo:
         member_in.telegram = second_member.telegram
         with pytest.raises(exceptions.ObjectAlreadyExistsError):
             repo.update(member, member_in)
+
+    def test_member_get_list_no_sort_and_no_search(
+        self,
+        member: Member,
+    ) -> None:
+        """Покрытие ветки, где search и sort_by пустые."""
+        repo = MemberRepo()
+        query = MemberFilterQuery(
+            search=None,
+            sort_by='',
+            group=None,
+            offset=0,
+            limit=10,
+        )
+        res = repo.get_list(query)
+        assert len(res) > 0

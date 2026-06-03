@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import final, override
 
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponse
 from dmr import Body, Controller
@@ -8,7 +9,11 @@ from dmr.endpoint import Endpoint, validate
 from dmr.errors import ErrorType
 from dmr.metadata import ResponseSpec
 from dmr.plugins.msgspec import MsgspecSerializer
+from dmr.security import AuthenticatedHttpRequest
+from dmr.security.jwt.auth import JWTSyncAuth
 
+from server.apps.auth.logic.permissions import require_role
+from server.apps.auth.logic.roles import Role
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.usecases.directions import (
     CreateDirection,
@@ -26,13 +31,20 @@ from server.common.di import HasContainer
 
 
 @final
-class DirectionsController(HasContainer, Controller[MsgspecSerializer]):
+class DirectionsController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Контроллер для списка направлений и создания новых."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(list[DirectionOut], status_code=HTTPStatus.OK),
         tags=['Направления'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Получение списка направлений."""
         return self.to_response(
@@ -45,6 +57,7 @@ class DirectionsController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.CONFLICT),
         tags=['Направления'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def post(self, parsed_body: Body[DirectionIn]) -> HttpResponse:
         """Cоздание списка направлений."""  # noqa: RUF002
         result = self.resolve(CreateDirection)(parsed_body)
@@ -75,14 +88,21 @@ class DirectionsController(HasContainer, Controller[MsgspecSerializer]):
 
 
 @final
-class DirectionDetailController(HasContainer, Controller[MsgspecSerializer]):
+class DirectionDetailController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
     """Управление конкретным направлением."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
 
     @validate(
         ResponseSpec(DirectionOut, status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Направления'],
     )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Получение данных выбранного направления."""
         result = self.resolve(GetDirection)(
@@ -96,6 +116,7 @@ class DirectionDetailController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Направления'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def put(self, parsed_body: Body[DirectionIn]) -> HttpResponse:
         """Полное обновление данных выбранного направления."""
         result = self.resolve(UpdateDirection)(
@@ -109,6 +130,7 @@ class DirectionDetailController(HasContainer, Controller[MsgspecSerializer]):
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Направления'],
     )
+    @require_role([Role.EDITOR, Role.ADMIN])
     def delete(self) -> HttpResponse:
         """Мягкое удаление выбранного направления."""
         result = self.resolve(DeleteDirection)(

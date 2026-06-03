@@ -201,3 +201,30 @@ def auth_headers_viewer(viewer_token: str) -> dict[str, str]:
 def auth_headers_editor(editor_token: str) -> dict[str, str]:
     """Заголовки для выполнения запросов от лица Editor."""
     return {'HTTP_AUTHORIZATION': f'Bearer {editor_token}'}
+
+
+@pytest.fixture
+def superuser(db: Any) -> User:
+    """Создает суперпользователя (is_superuser=True)."""
+    return User.objects.create_superuser(
+        username='admin_test',
+        password='password123',  # noqa: S106
+        email='admin@example.com',
+    )
+
+
+@pytest.fixture
+def superuser_token(client: Client, superuser: User) -> str:
+    """Возвращает access_token для суперпользователя."""
+    response = client.post(
+        reverse('api:auth:login'),
+        data={'username': 'admin_test', 'password': 'password123'},
+        content_type='application/json',
+    )
+    return cast(str, response.json()['access_token'])
+
+
+@pytest.fixture
+def auth_headers_superuser(superuser_token: str) -> dict[str, str]:
+    """Заголовки для выполнения запросов от лица суперпользователя."""
+    return {'HTTP_AUTHORIZATION': f'Bearer {superuser_token}'}
