@@ -10,6 +10,23 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    
+    # ДОБАВЛЯЕМ СЕРВИС С БАЗОЙ ДАННЫХ
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        # Ждем, пока БД будет готова принимать подключения
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out repository
@@ -30,7 +47,14 @@ jobs:
         run: uv sync
 
       - name: Create .env for tests
-        run: cp config/.env.template config/.env
+        run: |
+          cp config/.env.template config/.env
+          # Переопределяем доступы к БД в .env файле, чтобы они совпадали с сервисом postgres
+          echo "POSTGRES_USER=postgres" >> config/.env
+          echo "POSTGRES_PASSWORD=password" >> config/.env
+          echo "POSTGRES_DB=test_db" >> config/.env
+          echo "DJANGO_DATABASE_HOST=localhost" >> config/.env
+          echo "DJANGO_DATABASE_PORT=5432" >> config/.env
 
       - name: Run Ruff (Linter)
         run: uv run ruff check .
