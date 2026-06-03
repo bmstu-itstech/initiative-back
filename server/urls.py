@@ -27,16 +27,17 @@ from dmr.plugins.msgspec import MsgspecSerializer
 from dmr.routing import Router, build_404_handler, build_500_handler, path
 from health_check.views import HealthCheckView
 
-from server.apps.main import urls as main_urls
-from server.apps.main.api import urls as main_api_urls
-from server.apps.main.views import index
+from server.apps.members.controllers.urls import router as members_router
 
 admin.autodiscover()
 
 router = Router(
     'api/',
     [
-        path('user/', include(main_api_urls, namespace='main')),
+        path(
+            'members/',
+            include((members_router.urls, 'members'), namespace='members'),
+        ),
     ],
 )
 schema = build_schema(router)
@@ -45,8 +46,6 @@ handler404 = build_404_handler(router.prefix, serializer=MsgspecSerializer)
 handler500 = build_500_handler(router.prefix, serializer=MsgspecSerializer)
 
 urlpatterns = [
-    # Apps:
-    path('main/', include(main_urls, namespace='main')),
     # Apis:
     path(router.prefix, include((router.urls, 'server'), namespace='api')),
     # OpenAPI:
@@ -96,8 +95,6 @@ urlpatterns = [
         ),
         name='humans_txt',
     ),
-    # It is a good practice to have explicit index view:
-    path('', index, name='index'),
 ]
 
 if settings.DEBUG:  # pragma: no cover

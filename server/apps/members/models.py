@@ -1,10 +1,18 @@
-from typing import ClassVar, override
+from typing import Any, ClassVar, override
 
-from django.core.validators import MinLengthValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 
 from server.apps.members.managers import ActiveManager
+
+UNIQUE_ACTIVE_FIO = 'unique_active_fio'
+UNIQUE_ACTIVE_TELEGRAM = 'unique_active_telegram'
+UNIQUE_ACTIVE_DIRECTION_NAME = 'unique_active_direction_name'
+UNIQUE_ACTIVE_DEPARTMENT_IN_DIRECTION = 'unique_active_department_in_direction'
+UNIQUE_ACTIVE_POSITION_IN_DEPARTMENT = 'unique_active_position_in_department'
+UNIQUE_ACTIVE_POSITION_IN_DIRECTION = 'unique_active_position_in_direction'
+CHECK_LEADER_BELONGS_TO_ONE_UNIT = 'check_leader_belongs_to_one_unit'
 
 
 class SoftDeleteModel(models.Model):
@@ -42,6 +50,7 @@ class Member(SoftDeleteModel):
     """Модель Активиста Студенческого совета."""
 
     GROUP_REGEX = r'^((((ИУ|ИБМ|МТ|СМ|БМТ|РЛ|Э|РК|ФН|Л|СГН|РКТ|АК|ПС|РТ|ЛТ|К|ЮР)[1-9]\d?)|(ЮР(\.ДК)?))(К)?[ИЦ]?-(((1[0-2])|(\d))((\d)|(\.\d\d+))([АМБ]?(В)?)))$'  # noqa: E501, RUF001
+    TELEGRAM_REGEX = r'^[a-zA-Z0-9_]{5,32}$'
 
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
@@ -54,22 +63,28 @@ class Member(SoftDeleteModel):
     )
     telegram = models.CharField(
         max_length=32,
-        validators=[MinLengthValidator(5)],
+        validators=[RegexValidator(regex=TELEGRAM_REGEX)],
     )
     birth_date = models.DateField(null=True, blank=True)
     join_date = models.DateField(auto_now_add=True)
+
+    departments: models.ManyToManyField[Any, Any] = models.ManyToManyField(
+        'Department',
+        related_name='members',
+        blank=True,
+    )
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [
             models.UniqueConstraint(
                 fields=['last_name', 'first_name', 'patronymic'],
-                name='unique_active_fio',
+                name=UNIQUE_ACTIVE_FIO,
                 condition=models.Q(is_deleted=False),
                 nulls_distinct=False,
             ),
             models.UniqueConstraint(
                 fields=['telegram'],
-                name='unique_active_telegram',
+                name=UNIQUE_ACTIVE_TELEGRAM,
                 condition=models.Q(is_deleted=False),
             ),
         ]
@@ -92,7 +107,7 @@ class Direction(SoftDeleteModel):
         constraints: ClassVar[list[models.BaseConstraint]] = [
             models.UniqueConstraint(
                 fields=['name'],
-                name='unique_active_direction_name',
+                name=UNIQUE_ACTIVE_DIRECTION_NAME,
                 condition=models.Q(is_deleted=False),
             ),
         ]
@@ -111,13 +126,14 @@ class Department(SoftDeleteModel):
         Direction,
         on_delete=models.CASCADE,
         related_name='departments',
+        db_index=True,
     )
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [
             models.UniqueConstraint(
                 fields=['name', 'direction'],
-                name='unique_active_department_in_direction',
+                name=UNIQUE_ACTIVE_DEPARTMENT_IN_DIRECTION,
                 condition=models.Q(is_deleted=False),
             ),
         ]
@@ -142,6 +158,7 @@ class Leader(SoftDeleteModel):
         null=True,
         blank=True,
         related_name='leaders',
+        db_index=True,
     )
     direction = models.ForeignKey(
         Direction,
@@ -149,6 +166,7 @@ class Leader(SoftDeleteModel):
         null=True,
         blank=True,
         related_name='leaders',
+        db_index=True,
     )
     position = models.CharField(max_length=128)
 
@@ -156,12 +174,12 @@ class Leader(SoftDeleteModel):
         constraints: ClassVar[list[models.BaseConstraint]] = [
             models.UniqueConstraint(
                 fields=['position', 'department'],
-                name='unique_active_position_in_department',
+                name=UNIQUE_ACTIVE_POSITION_IN_DEPARTMENT,
                 condition=models.Q(is_deleted=False, department__isnull=False),
             ),
             models.UniqueConstraint(
                 fields=['position', 'direction'],
-                name='unique_active_position_in_direction',
+                name=UNIQUE_ACTIVE_POSITION_IN_DIRECTION,
                 condition=models.Q(is_deleted=False, direction__isnull=False),
             ),
             models.CheckConstraint(
@@ -175,7 +193,7 @@ class Leader(SoftDeleteModel):
                         direction_id__isnull=False,
                     )
                 ),
-                name='check_leader_belongs_to_one_unit',
+                name=CHECK_LEADER_BELONGS_TO_ONE_UNIT,
             ),
         ]
 

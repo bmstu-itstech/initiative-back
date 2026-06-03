@@ -35,19 +35,53 @@ def _inject_django(container: punq.Container) -> None:
     )
 
 
-def _inject_main(container: punq.Container) -> None:
-    from server.apps.main.infra import mappers, repository
-    from server.apps.main.logic.usecases import blogpost_create, blogpost_get
+def _inject_members(container: punq.Container) -> None:
+    from server.apps.members.infra import mappers, repository
+    from server.apps.members.logic.usecases import (
+        departments,
+        directions,
+        leaders,
+        members,
+    )
 
     # Hacks to resolve annotations:
     inject = _create_injector(container, locals())  # noqa: WPS421
 
     # Things to register:
-    container.register(repository.BlogPostRepo)
-    container.register(mappers.BlogPostMapper)
+    container.register(repository.DirectionRepo)
+    container.register(mappers.DirectionMapper)
+    container.register(repository.DepartmentRepo)
+    container.register(mappers.DepartmentMapper)
+    container.register(repository.LeaderRepo)
+    container.register(mappers.LeaderMapper)
+    container.register(repository.MemberRepo)
+    container.register(mappers.MemberMapper)
 
-    container.register(inject(blogpost_create.CreateBlogPost))
-    container.register(inject(blogpost_get.GetBlogPost))
+    container.register(inject(directions.GetDirectionList))
+    container.register(inject(directions.GetDirection))
+    container.register(inject(directions.CreateDirection))
+    container.register(inject(directions.UpdateDirection))
+    container.register(inject(directions.DeleteDirection))
+
+    container.register(inject(departments.GetDepartmentList))
+    container.register(inject(departments.GetDepartment))
+    container.register(inject(departments.CreateDepartment))
+    container.register(inject(departments.UpdateDepartment))
+    container.register(inject(departments.DeleteDepartment))
+
+    container.register(inject(leaders.GetLeaderList))
+    container.register(inject(leaders.GetLeader))
+    container.register(inject(leaders.CreateLeader))
+    container.register(inject(leaders.UpdateLeader))
+    container.register(inject(leaders.DeleteLeader))
+
+    container.register(inject(members.GetMemberList))
+    container.register(inject(members.GetMember))
+    container.register(inject(members.GetMembersByDepartment))
+    container.register(inject(members.GetMembersByDirection))
+    container.register(inject(members.CreateMember))
+    container.register(inject(members.UpdateMember))
+    container.register(inject(members.DeleteMember))
 
 
 def populate_dependencies(container: punq.Container) -> punq.Container:
@@ -55,5 +89,5 @@ def populate_dependencies(container: punq.Container) -> punq.Container:
     # Deps:
     _inject_django(container)
     # Apps:
-    _inject_main(container)
+    _inject_members(container)
     return container

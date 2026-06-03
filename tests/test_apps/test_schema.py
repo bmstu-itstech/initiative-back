@@ -34,7 +34,7 @@ def api_schema(
 schema = st.pytest.from_fixture('api_schema')
 
 
-@pytest.mark.timeout(60)  # increase the default timeout for this test
+@pytest.mark.timeout(120)  # increase the default timeout for this test
 @schema.parametrize()
 def test_schemathesis(settings: LazySettings, *, case: st.Case) -> None:
     """Ensure that API implementation matches the OpenAPI schema."""

@@ -21,7 +21,6 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 INSTALLED_APPS: tuple[str, ...] = (
     # Your apps go here:
-    'server.apps.main',
     'server.apps.members',
     # Default django apps:
     'django.contrib.auth',
@@ -29,6 +28,7 @@ INSTALLED_APPS: tuple[str, ...] = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     # django-admin:
     'django.contrib.admin',
     'django.contrib.admindocs',
