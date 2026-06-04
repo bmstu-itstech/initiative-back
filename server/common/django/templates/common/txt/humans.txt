@@ -1,14 +1,9 @@
-# The humans responsible & technology colophon
-# http://humanstxt.org/
+/* PROJECT */
+    Name: Инициатива (Initiative) - Система управления Студенческим советом ИУ
+    Organization: Студенческий совет факультета ИУ, МГТУ им. Н. Э. Баумана
+    Department: ITS Tech (Направление ITS BMSTU)
+    University: МГТУ им. Н. Э. Баумана
 
-
-## wemake.services
-
-Team:
-
-
-## Technologies
-
-Language: Russian
-Doctype: HTML5
-Technologies: Python, Django
+/* SITE */
+    Language: Russian
+    Technologies: Python 3.13, Django 6, PostgreSQL, Docker, DMR, msgspec
