@@ -112,16 +112,15 @@ class TestLeadersAPI:
             telegram='new_tg_user',
         )
 
-        leader_in.member_id = new_member.id
-        leader_in.position = leader.position
-        leader_in.department_id = (
-            leader.department.id if leader.department else None
-        )
-        leader_in.direction_id = (
-            leader.direction.id if leader.direction else None
-        )
+        payload = {
+            'member_id': new_member.id,
+            'position': leader.position,
+            'department_id': leader.department_id
+            if leader.department
+            else None,
+            'direction_id': leader.direction_id if leader.direction else None,
+        }
 
-        payload = msgspec.to_builtins(leader_in)
         response = dmr_client.post(
             reverse('api:members:leaders'),
             data=payload,
