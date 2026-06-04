@@ -130,6 +130,16 @@ docker compose exec web python manage.py createsuperuser
 * **django-health-check:** [http://localhost:8000/health/](http://localhost:8000/health/)
 * **Панель Администратора:** [http://localhost:8000/admin/](http://localhost:8000/admin/)
 
+### Разработка вне Docker
+
+Для разработки все Docker-а следует использовать пакетного менеджера `uv`. Сборка виртуального окружения и установка всех зависимостей выполняется одной командой:
+
+```bash
+uv sync
+```
+
+После этого вы можете использовать `uv run python manage.py ...` или `uv run pytest` для локального запуска.
+
 ## Структура данных и Сущности
 
 **Soft Delete (Мягкое удаление)**:
