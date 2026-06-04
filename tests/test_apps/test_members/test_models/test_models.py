@@ -1,90 +1,72 @@
-from typing import final
-
 import pytest
-from hypothesis import given
-from hypothesis import strategies as st
-from hypothesis.extra import django
 
 from server.apps.members.models import Department, Direction, Leader, Member
 
 
-@final
-class TestDirection(django.TestCase):
-    """Тест свойств модели Direction."""
+@pytest.mark.django_db
+class TestModelProperties:
+    """Тестирование строковых свойств (__str__) моделей БД."""
 
-    @given(django.from_model(Direction))
-    def test_model_properties(self, instance: Direction) -> None:
+    def test_direction_str(self, direction: Direction) -> None:
         """Тест свойств модели Direction."""
-        instance.save()
-        assert instance.id > 0
-        assert str(instance) == instance.name
+        assert direction.id is not None
+        assert str(direction) == direction.name
 
-
-@final
-class TestDepartment(django.TestCase):
-    """Тест свойств модели Department."""
-
-    @given(
-        django.from_model(Department, direction=django.from_model(Direction)),
-    )
-    def test_model_properties(self, instance: Department) -> None:
+    def test_department_str(self, department: Department) -> None:
         """Тест свойств модели Department."""
-        instance.direction.save()
-        instance.save()
-        assert instance.id > 0
-        assert instance.name in str(instance)
-        assert instance.direction.name in str(instance)
+        assert department.id is not None
+        assert department.name in str(department)
+        assert department.direction.name in str(department)
 
+    def test_member_str(self, member: Member) -> None:
+        """Тест свойств модели Member (без отчества)."""
+        member.patronymic = ''
+        member.save()
 
-@final
-class TestMember(django.TestCase):
-    """Тест свойств модели Member."""
+        assert member.id is not None
+        assert member.last_name in str(member)
+        assert member.first_name in str(member)
+        assert str(member) == f'{member.last_name} {member.first_name}'
 
-    @given(django.from_model(Member))
-    def test_model_properties(self, instance: Member) -> None:
-        """Тест свойств модели Member."""
-        instance.save()
-        assert instance.id > 0
-        assert instance.last_name in str(instance)
-        assert instance.first_name in str(instance)
+    def test_member_str_with_patronymic(self, member: Member) -> None:
+        """Тест свойств модели Member (с отчеством)."""  # noqa: RUF002
+        member.patronymic = 'Иванович'
+        member.save()
 
+        assert member.id is not None
+        assert member.last_name in str(member)
+        assert member.first_name in str(member)
+        assert 'Иванович' in str(member)
+        assert str(member) == f'{member.last_name} {member.first_name} Иванович'
 
-@final
-class TestLeader(django.TestCase):
-    """Тест свойств модели Leader."""
+    def test_leader_str_department(self, leader: Leader) -> None:
+        """Тест свойств модели Leader (с привязкой к отделу)."""  # noqa: RUF002
+        assert leader.id is not None
+        assert leader.department is not None
+        assert leader.position in str(leader)
+        assert str(leader.member) in str(leader)
+        assert leader.department.name in str(leader)
 
-    @given(
-        django.from_model(
-            Leader,
-            member=django.from_model(Member),
-            department=django.from_model(
-                Department,
-                direction=django.from_model(Direction),
-            ),
-            direction=st.just(None),
-        ),
-    )
-    def test_model_properties(self, instance: Leader) -> None:
-        """Тест свойств модели Leader."""
-        assert instance.department is not None
-
-        instance.member.save()
-        instance.department.direction.save()
-        instance.department.save()
-        instance.save()
-
-        assert instance.id > 0
-        assert instance.position in str(instance)
-        assert str(instance.member) in str(instance)
+    def test_leader_str_direction(self, leader_direction: Leader) -> None:
+        """Тест свойств модели Leader (с привязкой к направлению)."""  # noqa: RUF002
+        assert leader_direction.id is not None
+        assert leader_direction.direction is not None
+        assert leader_direction.position in str(leader_direction)
+        assert str(leader_direction.member) in str(leader_direction)
+        assert leader_direction.direction.name in str(leader_direction)
 
 
 @pytest.mark.django_db
 def test_soft_delete_restore(member: Member) -> None:
     """Тест восстановления мягко удаленной записи."""
-    member.delete()
-    assert member.is_deleted is True
-    assert member.deleted_at is not None
+    member_id = member.id
 
-    member.restore()
-    assert member.is_deleted is False
-    assert member.deleted_at is None  # type: ignore[unreachable]
+    member.delete()
+    deleted_member = Member.all_objects.get(id=member_id)
+    assert deleted_member.is_deleted is True
+    assert deleted_member.deleted_at is not None
+
+    deleted_member.restore()
+    restored_member = Member.objects.get(id=member_id)
+    assert restored_member.is_deleted is False
+    assert restored_member.deleted_at is None
