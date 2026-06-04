@@ -92,7 +92,7 @@ class TestDepartmentsAPI:
         )
         assert response.status_code == HTTPStatus.OK
         department.refresh_from_db()
-        assert department.is_deleted is True
+        assert department.deleted_at is not None
 
     def test_department_get_not_found(
         self,

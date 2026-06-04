@@ -28,8 +28,8 @@ class CustomGroupAdmin(GroupAdmin):
 class DirectionAdmin(admin.ModelAdmin[Direction]):
     """Админка для Направлений."""
 
-    list_display = ('id', 'name', 'is_deleted')
-    list_filter = ('is_deleted',)
+    list_display = ('id', 'name', 'deleted_at')
+    list_filter = ('deleted_at',)
     search_fields = ('name',)
 
     @override
@@ -42,8 +42,8 @@ class DirectionAdmin(admin.ModelAdmin[Direction]):
 class DepartmentAdmin(admin.ModelAdmin[Department]):
     """Админка для Отделов."""
 
-    list_display = ('id', 'name', 'direction', 'is_deleted')
-    list_filter = ('direction', 'is_deleted')
+    list_display = ('id', 'name', 'direction', 'deleted_at')
+    list_filter = ('direction', 'deleted_at')
     search_fields = ('name', 'direction__name')
     list_select_related = ('direction',)
 
@@ -64,9 +64,9 @@ class MemberAdmin(admin.ModelAdmin[Member]):
         'group',
         'telegram',
         'get_departments',
-        'is_deleted',
+        'deleted_at',
     )
-    list_filter = ('group', 'is_deleted')
+    list_filter = ('group', 'deleted_at')
     search_fields = ('first_name', 'last_name', 'telegram')
 
     @override
@@ -100,10 +100,12 @@ class MemberAdmin(admin.ModelAdmin[Member]):
 class LeaderAdmin(admin.ModelAdmin[Leader]):
     """Админка для Руководителей."""
 
-    list_display = ('id', 'member', 'position', 'get_unit', 'is_deleted')
-    list_filter = ('is_deleted',)
+    list_display = ('id', 'member', 'position', 'get_unit', 'deleted_at')
+    list_filter = ('deleted_at',)
     search_fields = ('position', 'member__first_name', 'member__last_name')
     list_select_related = ('member', 'department', 'direction')
+
+    autocomplete_fields = ('member',)
 
     @override
     def get_queryset(self, request: HttpRequest) -> QuerySet[Leader]:
@@ -116,11 +118,13 @@ class LeaderAdmin(admin.ModelAdmin[Leader]):
 
     def get_unit(self, obj: Leader) -> str:
         """Отображает, к какому подразделению привязан руководитель."""
+        units = []
         if obj.department:
-            return f'Отдел: {obj.department.name}'
+            units.append(f'Отдел: {obj.department.name}')
         if obj.direction:
-            return f'Направление: {obj.direction.name}'
-        return '-'
+            units.append(f'Направление: {obj.direction.name}')
+
+        return ' и '.join(units) if units else '-'
 
     get_unit.short_description = 'Подразделение'  # type: ignore[attr-defined]
 

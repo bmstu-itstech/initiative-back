@@ -85,4 +85,4 @@ class TestLeadersLogic:
         assert result['status'] == 'success'
 
         leader.refresh_from_db()
-        assert leader.is_deleted is True
+        assert leader.deleted_at is not None

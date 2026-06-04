@@ -2,7 +2,9 @@ from typing import NoReturn, cast, final
 
 import attrs
 from django.contrib.postgres.search import TrigramSimilarity
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
+from zeal import zeal_ignore
 
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
@@ -176,26 +178,31 @@ class LeaderRepo:
         department_id: int | None,
         direction_id: int | None,
     ) -> Leader:
-        """Создает нового руководителя."""
+        """Создает нового руководителя с атомарной проверкой связей."""  # noqa: RUF002
         try:
-            leader = cast(
-                Leader,
-                Leader.objects.create(
-                    member_id=member_id,
-                    position=position,
-                    department_id=department_id,
-                    direction_id=direction_id,
-                ),
-            )
-            _ = leader.member
-            if leader.department:
-                _ = leader.department.direction
-            if leader.direction:
-                _ = leader.direction
+            with transaction.atomic():
+                leader = cast(
+                    Leader,
+                    Leader.objects.create(
+                        member_id=member_id,
+                        position=position,
+                        department_id=department_id,
+                        direction_id=direction_id,
+                    ),
+                )
+                _ = leader.member
+                if leader.department:
+                    _ = leader.department.direction
+                if leader.direction:
+                    _ = leader.direction
+
+                return leader
         except IntegrityError as e:
             self._handle_integrity_error(str(e))
-        else:
-            return leader
+        except ObjectDoesNotExist:
+            raise exceptions.ObjectNotFoundError(
+                'Указанный активист, отдел или направление не существует.',
+            ) from None
 
     def update(
         self,
@@ -211,12 +218,22 @@ class LeaderRepo:
         leader.department_id = department_id
         leader.direction_id = direction_id
         try:
-            leader.save()
-            leader.refresh_from_db()
+            with transaction.atomic():
+                leader.save()
+                _ = leader.member
+                if leader.department:
+                    _ = leader.department.direction
+                if leader.direction:
+                    _ = leader.direction
+                leader.refresh_from_db()
+
+                return leader
         except IntegrityError as e:
             self._handle_integrity_error(str(e))
-        else:
-            return leader
+        except ObjectDoesNotExist:
+            raise exceptions.ObjectNotFoundError(
+                'Указанный активист, отдел или направление не существует.',
+            ) from None
 
     def delete(self, leader: Leader) -> None:
         """Удаляет руководителя."""
@@ -232,14 +249,8 @@ class LeaderRepo:
             raise exceptions.ObjectAlreadyExistsError(
                 'Такая должность уже занята в этом направлении.',
             ) from None
-        if 'check_leader_belongs_to_one_unit' in error_msg:
-            raise exceptions.ObjectAlreadyExistsError(
-                'Руководитель должен принадлежать либо отделу, '
-                'либо направлению (не обоим и не ничему).',
-            ) from None
         raise exceptions.ObjectAlreadyExistsError(
-            'Нарушение целостности данных '
-            '(возможно, этот активист уже руководитель).',
+            'Нарушение целостности данных при сохранении руководителя.',
         ) from None
 
 
@@ -334,7 +345,8 @@ class MemberRepo:
         except IntegrityError as e:
             self._handle_integrity_error(str(e))
         else:
-            return member
+            with zeal_ignore():
+                return self.get_by_id(member.id)
 
     def update(self, member: Member, data: MemberIn) -> Member:
         """Обновляет данные активиста."""
@@ -351,7 +363,8 @@ class MemberRepo:
         except IntegrityError as e:
             self._handle_integrity_error(str(e))
         else:
-            return member
+            with zeal_ignore():
+                return self.get_by_id(member.id)
 
     def delete(self, member: Member) -> None:
         """Удаляет активиста."""

@@ -18,8 +18,8 @@ CHECK_LEADER_BELONGS_TO_ONE_UNIT = 'check_leader_belongs_to_one_unit'
 class SoftDeleteModel(models.Model):
     """Абстрактная модель с поддержкой мягкого удаления."""  # noqa: RUF002
 
-    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
     deleted_at = models.DateTimeField(
+        default=None,
         null=True,
         blank=True,
         verbose_name='Дата удаления',
@@ -31,23 +31,26 @@ class SoftDeleteModel(models.Model):
     class Meta:
         abstract = True
 
+    @property
+    def is_deleted(self) -> bool:
+        """Свойство, вычисляемое на лету."""
+        return self.deleted_at is not None
+
     @override
     def delete(
         self,
         using: str | None = None,
         keep_parents: bool = False,
     ) -> tuple[int, dict[str, int]]:
-        """Переопределение базового удаления для Soft Delete."""
-        self.is_deleted = True
+        """Переопределение базового удаления."""
         self.deleted_at = timezone.now()
-        self.save(update_fields=['is_deleted', 'deleted_at'])
+        self.save(update_fields=['deleted_at'])
         return (1, {self._meta.label: 1})
 
     def restore(self) -> None:
-        """Вспомогательный метод для восстановления удаленной записи."""
-        self.is_deleted = False
+        """Восстановление записи."""
         self.deleted_at = None
-        self.save(update_fields=['is_deleted', 'deleted_at'])
+        self.save(update_fields=['deleted_at'])
 
 
 class Member(SoftDeleteModel):
@@ -97,13 +100,13 @@ class Member(SoftDeleteModel):
             models.UniqueConstraint(
                 fields=['last_name', 'first_name', 'patronymic'],
                 name=UNIQUE_ACTIVE_FIO,
-                condition=models.Q(is_deleted=False),
+                condition=models.Q(deleted_at__isnull=True),
                 nulls_distinct=False,
             ),
             models.UniqueConstraint(
                 fields=['telegram'],
                 name=UNIQUE_ACTIVE_TELEGRAM,
-                condition=models.Q(is_deleted=False),
+                condition=models.Q(deleted_at__isnull=True),
             ),
         ]
         verbose_name = 'Активист'
@@ -128,7 +131,7 @@ class Direction(SoftDeleteModel):
             models.UniqueConstraint(
                 fields=['name'],
                 name=UNIQUE_ACTIVE_DIRECTION_NAME,
-                condition=models.Q(is_deleted=False),
+                condition=models.Q(deleted_at__isnull=True),
             ),
         ]
         verbose_name = 'Направление'
@@ -157,7 +160,7 @@ class Department(SoftDeleteModel):
             models.UniqueConstraint(
                 fields=['name', 'direction'],
                 name=UNIQUE_ACTIVE_DEPARTMENT_IN_DIRECTION,
-                condition=models.Q(is_deleted=False),
+                condition=models.Q(deleted_at__isnull=True),
             ),
         ]
         verbose_name = 'Отдел'
@@ -172,10 +175,10 @@ class Department(SoftDeleteModel):
 class Leader(SoftDeleteModel):
     """Модель Руководителя."""
 
-    member = models.OneToOneField(
+    member = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
-        related_name='leader_role',
+        related_name='leadership_roles',
         verbose_name='Активист',
     )
     department = models.ForeignKey(
@@ -203,25 +206,18 @@ class Leader(SoftDeleteModel):
             models.UniqueConstraint(
                 fields=['position', 'department'],
                 name=UNIQUE_ACTIVE_POSITION_IN_DEPARTMENT,
-                condition=models.Q(is_deleted=False, department__isnull=False),
+                condition=models.Q(
+                    deleted_at__isnull=True,
+                    department__isnull=False,
+                ),
             ),
             models.UniqueConstraint(
                 fields=['position', 'direction'],
                 name=UNIQUE_ACTIVE_POSITION_IN_DIRECTION,
-                condition=models.Q(is_deleted=False, direction__isnull=False),
-            ),
-            models.CheckConstraint(
-                condition=(
-                    models.Q(
-                        department_id__isnull=False,
-                        direction_id__isnull=True,
-                    )
-                    | models.Q(
-                        department_id__isnull=True,
-                        direction_id__isnull=False,
-                    )
+                condition=models.Q(
+                    deleted_at__isnull=True,
+                    direction__isnull=False,
                 ),
-                name=CHECK_LEADER_BELONGS_TO_ONE_UNIT,
             ),
         ]
         verbose_name = 'Руководитель'
@@ -230,5 +226,10 @@ class Leader(SoftDeleteModel):
     @override
     def __str__(self) -> str:
         """Строковое представление руководителя."""
-        unit = self.department.name if self.department else self.direction.name  # type: ignore[union-attr]
+        unit = 'Без подразделения'
+        if self.department:
+            unit = self.department.name
+        elif self.direction:
+            unit = self.direction.name
+
         return f'{self.position} — {unit} ({self.member})'

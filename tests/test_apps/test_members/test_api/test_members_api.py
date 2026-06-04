@@ -66,7 +66,7 @@ class TestMembersAPI:
         )
         assert response.status_code == HTTPStatus.OK
         member.refresh_from_db()
-        assert member.is_deleted is True
+        assert member.deleted_at is not None
 
     def test_member_get_not_found(
         self,

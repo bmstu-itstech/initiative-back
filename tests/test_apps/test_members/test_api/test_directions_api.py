@@ -150,7 +150,7 @@ class TestDirectionsAPI:
 
         assert response.status_code == HTTPStatus.OK
         direction.refresh_from_db()
-        assert direction.is_deleted is True
+        assert direction.deleted_at is not None
 
     def test_direction_update_not_found(
         self,

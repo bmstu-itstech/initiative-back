@@ -83,7 +83,7 @@ class LeaderIn(msgspec.Struct):
     """Схема входящих данных для Руководителя."""
 
     member_id: Annotated[int, msgspec.Meta(ge=1, le=2147483647)]
-    position: Annotated[str, msgspec.Meta(min_length=1, max_length=128)]
+    position: Annotated[str, msgspec.Meta(min_length=1, max_length=32)]
     department_id: Annotated[int, msgspec.Meta(ge=1, le=2147483647)] | None = (
         None
     )

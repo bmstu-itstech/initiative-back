@@ -40,7 +40,7 @@ class TestModelProperties:
         assert str(member) == f'{member.last_name} {member.first_name} Иванович'
 
     def test_leader_str_department(self, leader: Leader) -> None:
-        """Тест свойств модели Leader (с привязкой к отделу)."""  # noqa: RUF002
+        """Тест свойств модели Leader (с привязкой только к отделу)."""  # noqa: RUF002
         assert leader.id is not None
         assert leader.department is not None
         assert leader.position in str(leader)
@@ -48,12 +48,37 @@ class TestModelProperties:
         assert leader.department.name in str(leader)
 
     def test_leader_str_direction(self, leader_direction: Leader) -> None:
-        """Тест свойств модели Leader (с привязкой к направлению)."""  # noqa: RUF002
+        """Тест свойств модели Leader (с привязкой только к направлению)."""  # noqa: RUF002
         assert leader_direction.id is not None
         assert leader_direction.direction is not None
         assert leader_direction.position in str(leader_direction)
         assert str(leader_direction.member) in str(leader_direction)
         assert leader_direction.direction.name in str(leader_direction)
+
+    def test_leader_str_both_units(
+        self,
+        leader: Leader,
+        direction: Direction,
+    ) -> None:
+        """Тест свойств модели Leader при привязке к отделу и направлению."""
+        leader.direction = direction
+        leader.save()
+
+        assert leader.id is not None
+        assert leader.department is not None
+        assert leader.direction is not None
+        assert leader.position in str(leader)
+        assert leader.department.name in str(leader)
+
+    def test_leader_str_neither_unit(self, leader: Leader) -> None:
+        """Тест свойств модели Leader без привязки к подразделениям."""
+        leader.department = None
+        leader.direction = None
+        leader.save()
+
+        assert leader.id is not None
+        assert 'Без подразделения' in str(leader)
+        assert leader.position in str(leader)
 
 
 @pytest.mark.django_db
@@ -63,10 +88,8 @@ def test_soft_delete_restore(member: Member) -> None:
 
     member.delete()
     deleted_member = Member.all_objects.get(id=member_id)
-    assert deleted_member.is_deleted is True
     assert deleted_member.deleted_at is not None
 
     deleted_member.restore()
     restored_member = Member.objects.get(id=member_id)
-    assert restored_member.is_deleted is False
     assert restored_member.deleted_at is None

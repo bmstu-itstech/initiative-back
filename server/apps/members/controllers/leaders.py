@@ -53,6 +53,10 @@ class LeadersController(
     @validate(
         ResponseSpec(LeaderOut, status_code=HTTPStatus.CREATED),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.BAD_REQUEST),
+        ResponseSpec(
+            ErrorResponse,
+            status_code=HTTPStatus.NOT_FOUND,
+        ),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.CONFLICT),
         tags=['Руководители'],
     )
@@ -70,6 +74,13 @@ class LeadersController(
         exc: Exception,
     ) -> HttpResponse:
         """Перехват бизнес-ошибок для Schemathesis."""
+        if isinstance(exc, exceptions.ObjectNotFoundError):
+            if transaction.get_connection().in_atomic_block:  # pragma: no cover
+                transaction.set_rollback(True)  # pragma: no cover
+            return self.to_error(
+                self.format_error(str(exc), error_type=ErrorType.not_found),
+                status_code=HTTPStatus.NOT_FOUND,
+            )
         if isinstance(exc, exceptions.ObjectAlreadyExistsError):
             if transaction.get_connection().in_atomic_block:  # pragma: no cover
                 transaction.set_rollback(True)  # pragma: no cover

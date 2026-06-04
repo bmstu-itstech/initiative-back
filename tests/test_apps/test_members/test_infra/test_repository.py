@@ -88,7 +88,7 @@ class TestLeaderRepo:
         member: Member,
         department: Department,
     ) -> None:
-        """Тест создания руководителя с указанием отдела."""  # noqa: RUF002
+        """Тест создания руководителя с указанием только отдела."""  # noqa: RUF002
         repo = LeaderRepo()
         leader = repo.create(
             member_id=member.id,
@@ -98,34 +98,37 @@ class TestLeaderRepo:
         )
         assert leader.id is not None
         assert leader.department_id == department.id
+        assert leader.direction_id is None
 
-    def test_check_constraint_both_units(
+    def test_create_leader_both_units(
         self,
         member: Member,
         department: Department,
     ) -> None:
-        """Тест если указаны и отдел, и направление."""
+        """Тест успешного создания, если указаны и отдел, и направление."""
         repo = LeaderRepo()
-        with pytest.raises(exceptions.ObjectAlreadyExistsError) as exc_info:
-            repo.create(
-                member_id=member.id,
-                position='Глава',
-                department_id=department.id,
-                direction_id=department.direction_id,
-            )
-        assert 'либо отделу, либо направлению' in str(exc_info.value)
+        leader = repo.create(
+            member_id=member.id,
+            position='Глава всего',
+            department_id=department.id,
+            direction_id=department.direction_id,
+        )
+        assert leader.id is not None
+        assert leader.department_id == department.id
+        assert leader.direction_id == department.direction_id
 
-    def test_check_constraint_no_units(self, member: Member) -> None:
-        """Тест если не указан ни отдел, ни направление."""
+    def test_create_leader_no_units(self, member: Member) -> None:
+        """Тест успешного создания, если не указан ни отдел, ни направление."""
         repo = LeaderRepo()
-        with pytest.raises(exceptions.ObjectAlreadyExistsError) as exc_info:
-            repo.create(
-                member_id=member.id,
-                position='Глава',
-                department_id=None,
-                direction_id=None,
-            )
-        assert 'либо отделу, либо направлению' in str(exc_info.value)
+        leader = repo.create(
+            member_id=member.id,
+            position='Независимый лидер',
+            department_id=None,
+            direction_id=None,
+        )
+        assert leader.id is not None
+        assert leader.department_id is None
+        assert leader.direction_id is None
 
     def test_unique_position_in_department(self, leader: Leader) -> None:
         """Тест если должность уже занята в отделе."""
@@ -144,6 +147,72 @@ class TestLeaderRepo:
                 direction_id=None,
             )
         assert 'занята в этом отделе' in str(exc_info.value)
+
+    def test_generic_integrity_error(self) -> None:
+        """Тест обобщенного целостности данных."""
+        repo = LeaderRepo()
+        with pytest.raises(exceptions.ObjectNotFoundError) as exc_info:
+            repo.create(
+                member_id=9999999,
+                position='Глава',
+                department_id=None,
+                direction_id=None,
+            )
+        assert ' активист, отдел или направление не существует' in str(
+            exc_info.value,
+        )
+
+    def test_unique_position_in_direction(
+        self,
+        leader_direction: Leader,
+    ) -> None:
+        """Тест если должность уже занята в направлении."""
+        repo = LeaderRepo()
+        new_member = Member.objects.create(
+            telegram='new_tg_dir',
+            first_name='C',
+            last_name='D',
+        )
+
+        with pytest.raises(exceptions.ObjectAlreadyExistsError) as exc_info:
+            repo.create(
+                member_id=new_member.id,
+                position=leader_direction.position,
+                department_id=None,
+                direction_id=leader_direction.direction_id,
+            )
+        assert 'занята в этом направлении' in str(exc_info.value)
+
+    def test_update_success_change_units(
+        self,
+        leader: Leader,
+        direction: Direction,
+    ) -> None:
+        """Успешное обновление руководителя (смена отдела на направление)."""
+        repo = LeaderRepo()
+        updated = repo.update(
+            leader=leader,
+            member_id=leader.member_id,
+            position='Новая позиция',
+            department_id=None,
+            direction_id=direction.id,
+        )
+        assert updated.position == 'Новая позиция'
+        assert updated.department_id is None
+        assert updated.direction_id == direction.id
+
+    def test_update_generic_integrity_error(self, leader: Leader) -> None:
+        """Тест перехвата ObjectNotFoundError при обновлении с фейковым ID."""  # noqa: RUF002
+        repo = LeaderRepo()
+        with pytest.raises(exceptions.ObjectNotFoundError) as exc_info:
+            repo.update(
+                leader=leader,
+                member_id=9999999,
+                position='Глава',
+                department_id=None,
+                direction_id=None,
+            )
+        assert 'не существует' in str(exc_info.value)
 
 
 @pytest.mark.django_db
