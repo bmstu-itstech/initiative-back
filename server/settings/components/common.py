@@ -8,8 +8,6 @@ For the full list of settings and their config, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from django.utils.translation import gettext_lazy as _
-
 from server.settings.components import BASE_DIR, config
 
 # Quick-start development settings - unsuitable for production
@@ -106,16 +104,16 @@ CORS_ALLOWED_CREDENTIALS = True
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 USE_I18N = True
 
-LANGUAGES = (('en', _('English')),)
+LANGUAGES = (('ru', ('Russian')),)
 
 LOCALE_PATHS = ('locale/',)
 
 USE_TZ = True
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 
 # Static files (CSS, JavaScript, Images)

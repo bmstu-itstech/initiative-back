@@ -6,4 +6,4 @@ class MembersConfig(AppConfig):
 
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'server.apps.members'
-    verbose_name = 'Members'
+    verbose_name = 'Активисты'

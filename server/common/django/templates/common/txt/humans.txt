@@ -9,6 +9,6 @@ Team:
 
 ## Technologies
 
-Language: English
+Language: Russian
 Doctype: HTML5
 Technologies: Python, Django

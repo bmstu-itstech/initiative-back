@@ -18,8 +18,12 @@ CHECK_LEADER_BELONGS_TO_ONE_UNIT = 'check_leader_belongs_to_one_unit'
 class SoftDeleteModel(models.Model):
     """Абстрактная модель с поддержкой мягкого удаления."""  # noqa: RUF002
 
-    is_deleted = models.BooleanField(default=False)
-    deleted_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Дата удаления',
+    )
 
     objects = ActiveManager()
     all_objects = models.Manager['SoftDeleteModel']()
@@ -52,26 +56,40 @@ class Member(SoftDeleteModel):
     GROUP_REGEX = r'^((((ИУ|ИБМ|МТ|СМ|БМТ|РЛ|Э|РК|ФН|Л|СГН|РКТ|АК|ПС|РТ|ЛТ|К|ЮР)[1-9]\d?)|(ЮР(\.ДК)?))(К)?[ИЦ]?-(((1[0-2])|(\d))((\d)|(\.\d\d+))([АМБ]?(В)?)))$'  # noqa: E501, RUF001
     TELEGRAM_REGEX = r'^[a-zA-Z0-9_]{5,32}$'
 
-    first_name = models.CharField(max_length=64)
-    last_name = models.CharField(max_length=64)
-    patronymic = models.CharField(max_length=64, blank=True)
+    first_name = models.CharField(max_length=64, verbose_name='Имя')
+    last_name = models.CharField(max_length=64, verbose_name='Фамилия')
+    patronymic = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name='Отчество',
+    )
 
     group = models.CharField(
         max_length=32,
         validators=[RegexValidator(regex=GROUP_REGEX)],
         blank=True,
+        verbose_name='Группа',
     )
     telegram = models.CharField(
         max_length=32,
         validators=[RegexValidator(regex=TELEGRAM_REGEX)],
+        verbose_name='Telegram ник',
     )
-    birth_date = models.DateField(null=True, blank=True)
-    join_date = models.DateField(auto_now_add=True)
+    birth_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='Дата рождения',
+    )
+    join_date = models.DateField(
+        auto_now_add=True,
+        verbose_name='Дата вступления',
+    )
 
     departments: models.ManyToManyField[Any, Any] = models.ManyToManyField(
         'Department',
         related_name='members',
         blank=True,
+        verbose_name='Отделы',
     )
 
     class Meta:
@@ -88,6 +106,8 @@ class Member(SoftDeleteModel):
                 condition=models.Q(is_deleted=False),
             ),
         ]
+        verbose_name = 'Активист'
+        verbose_name_plural = 'Активисты'
 
     @override
     def __str__(self) -> str:
@@ -101,7 +121,7 @@ class Member(SoftDeleteModel):
 class Direction(SoftDeleteModel):
     """Модель Направления."""
 
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, verbose_name='Название')
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [
@@ -111,6 +131,8 @@ class Direction(SoftDeleteModel):
                 condition=models.Q(is_deleted=False),
             ),
         ]
+        verbose_name = 'Направление'
+        verbose_name_plural = 'Направления'
 
     @override
     def __str__(self) -> str:
@@ -121,12 +143,13 @@ class Direction(SoftDeleteModel):
 class Department(SoftDeleteModel):
     """Модель Отдела внутри Направления."""
 
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, verbose_name='Название')
     direction = models.ForeignKey(
         Direction,
         on_delete=models.CASCADE,
         related_name='departments',
         db_index=True,
+        verbose_name='Направление',
     )
 
     class Meta:
@@ -137,6 +160,8 @@ class Department(SoftDeleteModel):
                 condition=models.Q(is_deleted=False),
             ),
         ]
+        verbose_name = 'Отдел'
+        verbose_name_plural = 'Отделы'
 
     @override
     def __str__(self) -> str:
@@ -151,6 +176,7 @@ class Leader(SoftDeleteModel):
         Member,
         on_delete=models.CASCADE,
         related_name='leader_role',
+        verbose_name='Активист',
     )
     department = models.ForeignKey(
         Department,
@@ -159,6 +185,7 @@ class Leader(SoftDeleteModel):
         blank=True,
         related_name='leaders',
         db_index=True,
+        verbose_name='Отдел',
     )
     direction = models.ForeignKey(
         Direction,
@@ -167,8 +194,9 @@ class Leader(SoftDeleteModel):
         blank=True,
         related_name='leaders',
         db_index=True,
+        verbose_name='Направление',
     )
-    position = models.CharField(max_length=128)
+    position = models.CharField(max_length=128, verbose_name='Должность')
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [
@@ -196,6 +224,8 @@ class Leader(SoftDeleteModel):
                 name=CHECK_LEADER_BELONGS_TO_ONE_UNIT,
             ),
         ]
+        verbose_name = 'Руководитель'
+        verbose_name_plural = 'Руководители'
 
     @override
     def __str__(self) -> str:

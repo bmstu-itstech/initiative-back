@@ -112,3 +112,27 @@ def test_migration_0004_m2m_departments(migrator: Migrator) -> None:
     new_member.departments.add(department)
 
     assert new_member.departments.count() == 1
+
+
+def test_migration_0005_default_groups(migrator: Migrator) -> None:
+    """Тестируем накатывание и откат миграции создания ролей (0005)."""
+    migrator.apply_initial_migration(
+        ('members', '0004_member_departments_alter_member_telegram'),
+    )
+
+    new_state = migrator.apply_tested_migration(
+        ('members', '0005_create_default_groups'),
+    )
+    group_model = new_state.apps.get_model('auth', 'Group')
+    assert group_model.objects.filter(name='Viewer').exists()
+    assert group_model.objects.filter(name='Editor').exists()
+    assert group_model.objects.filter(name='Admin').exists()
+
+    reverted_state = migrator.apply_tested_migration(
+        ('members', '0004_member_departments_alter_member_telegram'),
+    )
+    reverted_group_model = reverted_state.apps.get_model('auth', 'Group')
+
+    assert not reverted_group_model.objects.filter(name='Viewer').exists()
+    assert not reverted_group_model.objects.filter(name='Editor').exists()
+    assert not reverted_group_model.objects.filter(name='Admin').exists()
