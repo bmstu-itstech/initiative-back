@@ -105,8 +105,6 @@ class LeaderAdmin(admin.ModelAdmin[Leader]):
     search_fields = ('position', 'member__first_name', 'member__last_name')
     list_select_related = ('member', 'department', 'direction')
 
-    autocomplete_fields = ('member',)
-
     @override
     def get_queryset(self, request: HttpRequest) -> QuerySet[Leader]:
         """Используем all_objects, чтобы видеть удаленные записи."""
@@ -140,5 +138,8 @@ class LeaderAdmin(admin.ModelAdmin[Leader]):
             kwargs['queryset'] = Department.all_objects.select_related(
                 'direction',
             ).all()
+
+        if db_field.name == 'member':
+            kwargs['queryset'] = Member.all_objects.all()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
