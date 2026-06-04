@@ -23,7 +23,7 @@ class ErrorResponse(msgspec.Struct):
 class DirectionIn(msgspec.Struct):
     """Схема входящих данных для Направления."""
 
-    name: Annotated[str, msgspec.Meta(min_length=1, max_length=128)]
+    name: Annotated[str, msgspec.Meta(min_length=1, max_length=32)]
 
 
 class DirectionOut(msgspec.Struct):
@@ -36,7 +36,7 @@ class DirectionOut(msgspec.Struct):
 class DepartmentIn(msgspec.Struct):
     """Схема входящих данных для Отдела."""
 
-    name: Annotated[str, msgspec.Meta(min_length=1, max_length=128)]
+    name: Annotated[str, msgspec.Meta(min_length=1, max_length=32)]
     direction_id: Annotated[int, msgspec.Meta(ge=1, le=2147483647)]
 
 

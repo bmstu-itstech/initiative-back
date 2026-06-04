@@ -136,3 +136,41 @@ def test_migration_0005_default_groups(migrator: Migrator) -> None:
     assert not reverted_group_model.objects.filter(name='Viewer').exists()
     assert not reverted_group_model.objects.filter(name='Editor').exists()
     assert not reverted_group_model.objects.filter(name='Admin').exists()
+
+
+def test_migration_0010_deduplication(migrator: Migrator) -> None:
+    """Тестируем, что миграция 0010 корректно обрабатывает коллизии."""
+    old_state = migrator.apply_initial_migration((
+        'members',
+        '0009_alter_department_deleted_at_and_more',
+    ))
+
+    direction_model = old_state.apps.get_model('members', 'Direction')
+    department_model = old_state.apps.get_model('members', 'Department')
+
+    prefix = 'A' * 32
+
+    dir1 = direction_model.objects.create(name=prefix + '1')
+    dir2 = direction_model.objects.create(name=prefix + '2')
+
+    dept1 = department_model.objects.create(name=prefix + 'A', direction=dir1)
+    dept2 = department_model.objects.create(name=prefix + 'B', direction=dir1)
+
+    new_state = migrator.apply_tested_migration((
+        'members',
+        '0010_alter_department_name_alter_direction_name_and_more',
+    ))
+
+    new_department_model = new_state.apps.get_model('members', 'Department')
+    new_dept1 = new_department_model.objects.get(pk=dept1.pk)
+    new_dept2 = new_department_model.objects.get(pk=dept2.pk)
+
+    assert new_dept1.name != new_dept2.name
+    assert len(new_dept1.name) <= 32
+    assert len(new_dept2.name) <= 32
+
+    new_direction_model = new_state.apps.get_model('members', 'Direction')
+    new_dir1 = new_direction_model.objects.get(pk=dir1.pk)
+    new_dir2 = new_direction_model.objects.get(pk=dir2.pk)
+
+    assert new_dir1.name != new_dir2.name

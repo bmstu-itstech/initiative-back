@@ -124,7 +124,7 @@ class Member(SoftDeleteModel):
 class Direction(SoftDeleteModel):
     """Модель Направления."""
 
-    name = models.CharField(max_length=128, verbose_name='Название')
+    name = models.CharField(max_length=32, verbose_name='Название')
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [
@@ -146,7 +146,7 @@ class Direction(SoftDeleteModel):
 class Department(SoftDeleteModel):
     """Модель Отдела внутри Направления."""
 
-    name = models.CharField(max_length=128, verbose_name='Название')
+    name = models.CharField(max_length=32, verbose_name='Название')
     direction = models.ForeignKey(
         Direction,
         on_delete=models.CASCADE,
@@ -199,7 +199,7 @@ class Leader(SoftDeleteModel):
         db_index=True,
         verbose_name='Направление',
     )
-    position = models.CharField(max_length=128, verbose_name='Должность')
+    position = models.CharField(max_length=32, verbose_name='Должность')
 
     class Meta:
         constraints: ClassVar[list[models.BaseConstraint]] = [

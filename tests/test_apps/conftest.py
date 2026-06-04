@@ -79,7 +79,7 @@ def direction(faker: Faker) -> Direction:
     """Создает фейковую инстанцию сущности Direction в БД."""
     return cast(
         Direction,
-        Direction.objects.create(name=faker.company()[:128]),
+        Direction.objects.create(name=faker.company()[:32]),
     )
 
 
@@ -89,9 +89,9 @@ def department(faker: Faker, direction: Direction) -> Department:
     return cast(
         Department,
         Department.objects.create(
-            name=faker.department()[:128]
+            name=faker.department()[:32]
             if hasattr(faker, 'department')
-            else faker.job()[:128],
+            else faker.job()[:32],
             direction=direction,
         ),
     )
@@ -122,7 +122,7 @@ def leader(faker: Faker, member: Member, department: Department) -> Leader:
         Leader,
         Leader.objects.create(
             member=member,
-            position=faker.job()[:128],
+            position=faker.job()[:32],
             department=department,
         ),
     )
@@ -139,7 +139,7 @@ def leader_direction(
         Leader,
         Leader.objects.create(
             member=member,
-            position=faker.job()[:128],
+            position=faker.job()[:32],
             direction=direction,
         ),
     )
