@@ -4,6 +4,8 @@ import attrs
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
+from django.db.models import Value
+from django.db.models.functions import Concat
 from zeal import zeal_ignore
 
 from server.apps.members.logic import exceptions
@@ -266,10 +268,18 @@ class MemberRepo:
         ).all()
 
         if query.search:
+            full_name_expr = Concat(
+                'last_name',
+                Value(' '),
+                'first_name',
+                Value(' '),
+                'patronymic',
+            )
+
             queryset = (
                 queryset
                 .annotate(
-                    similarity=TrigramSimilarity('last_name', query.search),
+                    similarity=TrigramSimilarity(full_name_expr, query.search),
                 )
                 .filter(similarity__gt=0.3)
                 .order_by('-similarity')
