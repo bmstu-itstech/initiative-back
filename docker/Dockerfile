@@ -4,8 +4,7 @@
 
 FROM python:3.13.13-slim-bookworm AS development_build
 
-LABEL maintainer="myapp.com"
-LABEL vendor="myapp.com"
+LABEL maintainer="its-tech"
 
 # `DJANGO_ENV` arg is used to make prod / dev builds:
 ARG DJANGO_ENV \

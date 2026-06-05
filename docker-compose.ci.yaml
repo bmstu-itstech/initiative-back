@@ -1,0 +1,39 @@
+x-logging:
+  &loki-logging
+  driver: loki
+  options:
+    loki-url: "${LOKI_ADDRESS:-http://localhost:3100}/loki/api/v1/push"
+    loki-external-labels: project=initiative
+
+services:
+  web:
+    build:
+      target: .
+      args:
+        DJANGO_ENV: production
+    command: bash ./docker/django/gunicorn.sh
+    environment:
+      DOMAIN_NAME: $DOMAIN_NAME
+      DJANGO_SECRET_KEY: $DJANGO_SECRET_KEY
+      POSTGRES_DB: $POSTGRES_NAME
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      DJANGO_DATABASE_HOST: $DJANGO_DATABASE_HOST
+      DJANGO_DATABASE_PORT: $DJANGO_DATABASE_PORT
+    restart: unless-stopped
+    networks:
+      - observability
+    ports:
+      - "${EXTERNAL_HTTP_PORT:-8000}:8000"
+    volumes:
+      - django-media:/var/www/django/media  # since in dev it is app's folder
+      - django-locale:/code/locale  # since in dev it is app's folder
+    logging: *loki-logging
+
+networks:
+  observability:
+    external: true
+
+volumes:
+  django-media:
+  django-locale:
