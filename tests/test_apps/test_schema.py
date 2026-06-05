@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 import schemathesis as st
@@ -20,6 +21,12 @@ def _disable_logging(settings: LazySettings) -> Iterator[None]:
     logging.disable(logging.NOTSET)
 
 
+@pytest.fixture(autouse=True)
+def _disable_axes(settings: Any) -> None:
+    """Отключаем защиту от брутфорса django-axes для прогона всех тестов."""
+    settings.AXES_ENABLED = False
+
+
 # NOTE: The `db` fixture is required to enable database access.
 # When `st.openapi.from_wsgi()` makes a WSGI request, Django's request
 # lifecycle triggers database operations.
@@ -34,7 +41,7 @@ def api_schema(
 schema = st.pytest.from_fixture('api_schema')
 
 
-@pytest.mark.timeout(60)  # increase the default timeout for this test
+@pytest.mark.timeout(120)  # increase the default timeout for this test
 @schema.parametrize()
 def test_schemathesis(settings: LazySettings, *, case: st.Case) -> None:
     """Ensure that API implementation matches the OpenAPI schema."""

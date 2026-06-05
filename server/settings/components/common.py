@@ -8,8 +8,6 @@ For the full list of settings and their config, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from django.utils.translation import gettext_lazy as _
-
 from server.settings.components import BASE_DIR, config
 
 # Quick-start development settings - unsuitable for production
@@ -21,18 +19,21 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 INSTALLED_APPS: tuple[str, ...] = (
     # Your apps go here:
-    'server.apps.main',
+    'server.apps.auth',
+    'server.apps.members',
     # Default django apps:
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     # django-admin:
     'django.contrib.admin',
     'django.contrib.admindocs',
     # django-modern-rest:
     'dmr',
+    'dmr.security.jwt.blocklist',
     'corsheaders',
     # Security:
     'axes',
@@ -103,16 +104,16 @@ CORS_ALLOWED_CREDENTIALS = True
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 USE_I18N = True
 
-LANGUAGES = (('en', _('English')),)
+LANGUAGES = (('ru', ('Russian')),)
 
 LOCALE_PATHS = ('locale/',)
 
 USE_TZ = True
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 
 # Static files (CSS, JavaScript, Images)

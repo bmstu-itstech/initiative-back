@@ -10,6 +10,9 @@
 #  $ docker compose up
 
 services:
+  db:
+    ports:
+      - "5432:5432"
   web:
     ports:
       # We only bind ports directly in development:
