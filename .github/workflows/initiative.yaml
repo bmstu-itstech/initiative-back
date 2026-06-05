@@ -1,0 +1,101 @@
+name: Initiative Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    environment: development
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Create .env for tests
+        run: |
+          cp config/.env.template config/.env
+
+          echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> config/.env
+          echo "DJANGO_DATABASE_HOST=localhost" >> config/.env
+          echo "DJANGO_DATABASE_PORT=5432" >> config/.env
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> config/.env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> config/.env
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> config/.env
+      
+      - name: Run Ruff (Linter)
+        run: uv run ruff check .
+
+      - name: Run Mypy (Type Checker)
+        run: uv run mypy .
+
+      - name: Run Pytest (Unit Tests & Coverage)
+        run: uv run pytest
+
+  deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Deploy to the production
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          EXTERNAL_HTTP_PORT: ${{ vars.EXTERNAL_HTTP_PORT }}
+          PGSSLROOTCERT: ${{ vars.PGSSLROOTCERT }}
+          LOKI_ADDRESS: ${{ vars.LOKI_ADDRESS }}
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          DJANGO_DATABASE_HOST: ${{ secrets.DJANGO_DATABASE_HOST }}
+          DJANGO_DATABASE_PORT: ${{ secrets.DJANGO_DATABASE_PORT }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        with:
+          host: ${{ vars.SSH_HOST }}
+          port: ${{ vars.SSH_PORT }}
+          username: ${{ vars.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script_stop: true
+          envs: EXTERNAL_HTTP_PORT,PGSSLROOTCERT,DJANGO_SECRET_KEY,DJANGO_DATABASE_HOST,DJANGO_DATABASE_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB
+          script: |
+            cd ${{ vars.PROJECT_DIR }}
+            git stash
+            git checkout main
+            git pull origin main
+            docker compose -f docker-compose.ci.yaml up --build -d
+
+# lFJL5m9v8JriFJWWwIoBeTbS
