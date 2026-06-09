@@ -8,7 +8,7 @@ x-logging:
 services:
   web:
     build:
-      context: .
+      target: production_build
       args:
         DJANGO_ENV: production
     command: bash ./docker/gunicorn.sh
@@ -41,4 +41,3 @@ networks:
 
 volumes:
   django-media:
-  django-locale:

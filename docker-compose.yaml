@@ -28,6 +28,7 @@ services:
   web:
     build:
       context: .
+      target: development_build
       args:
         DJANGO_ENV: development
     volumes:
