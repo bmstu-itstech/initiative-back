@@ -81,7 +81,7 @@ RUN --mount=type=cache,target="$UV_CACHE_DIR" \
     $(if [ "$DJANGO_ENV" = 'production' ]; then echo '--no-dev'; fi)
 
 # This is a special case. We need to run this script as an entry point:
-COPY ./docker/django/entrypoint.sh /docker-entrypoint.sh
+COPY ./docker/entrypoint.sh /docker-entrypoint.sh
 
 # Setting up proper permissions:
 RUN chmod +x '/docker-entrypoint.sh' \

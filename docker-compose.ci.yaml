@@ -8,10 +8,10 @@ x-logging:
 services:
   web:
     build:
-      target: .
+      context: .
       args:
         DJANGO_ENV: production
-    command: bash ./docker/django/gunicorn.sh
+    command: bash ./docker/gunicorn.sh
     environment:
       DOMAIN_NAME: $DOMAIN_NAME
       DJANGO_SECRET_KEY: $DJANGO_SECRET_KEY
@@ -21,13 +21,18 @@ services:
       DJANGO_DATABASE_HOST: $DJANGO_DATABASE_HOST
       DJANGO_DATABASE_PORT: $DJANGO_DATABASE_PORT
     restart: unless-stopped
+    healthcheck:
+      test: /bin/sh /code/docker/healthcheck.sh
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - observability
     ports:
       - "${EXTERNAL_HTTP_PORT:-8000}:8000"
     volumes:
       - django-media:/var/www/django/media  # since in dev it is app's folder
-      - django-locale:/code/locale  # since in dev it is app's folder
     logging: *loki-logging
 
 networks:

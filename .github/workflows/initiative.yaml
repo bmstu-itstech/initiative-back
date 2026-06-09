@@ -97,5 +97,3 @@ jobs:
             git checkout main
             git pull origin main
             docker compose -f docker-compose.ci.yaml up --build -d
-
-# lFJL5m9v8JriFJWWwIoBeTbS

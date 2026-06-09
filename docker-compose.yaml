@@ -26,49 +26,31 @@ services:
       start_period: 5s
 
   web:
-    <<: &web
-      # Image name is changed in production:
-      image: "initiative-back:dev"
-      build:
-        target: development_build
-        context: .
-        dockerfile: ./docker/django/Dockerfile
-        args:
-          DJANGO_ENV: development
-        cache_from:
-          - "initiative-back:dev"
-          - "initiative-back:latest"
-
-      volumes:
-        - django-static:/var/www/django/static
-      depends_on:
-        db:
-          condition: service_healthy
-      networks:
-        - web-net
-        - postgres-net
-      env_file: ./config/.env
-      environment:
-        DJANGO_DATABASE_HOST: db
-
+    build:
+      context: .
+      args:
+        DJANGO_ENV: development
+    volumes:
+      - django-static:/var/www/django/static
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - postgres-net
+    env_file: ./config/.env
+    environment:
+      DJANGO_DATABASE_HOST: db
     command: python -We -bb manage.py runserver 0.0.0.0:8000
     healthcheck:
-      test: /bin/sh /code/docker/django/healthcheck.sh
+      test: /bin/sh /code/docker/healthcheck.sh
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
 
-# This task is an example of how to extend existing ones:
-#   some_worker:
-#     <<: *web
-#     command: python manage.py worker_process
-
 networks:
   # Network for postgres, use it for services that need access to the db:
   postgres-net:
-  # Network for your internals, use it by default:
-  web-net:
 
 volumes:
   postgres-data:
