@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from typing import NoReturn, cast, final
 
 import attrs
@@ -6,7 +7,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
 from django.db.models import Value
 from django.db.models.functions import Concat
-from zeal import zeal_ignore
+
+try:
+    from zeal import zeal_ignore
+except ImportError:  # pragma: no cover
+    zeal_ignore = nullcontext  # pragma: no cover
 
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
