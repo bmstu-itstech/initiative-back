@@ -33,7 +33,7 @@ services:
       - "${EXTERNAL_HTTP_PORT:-8000}:8000"
     volumes:
       - ${DJANGO_MEDIA_VOLUME}:/var/www/django/media
-      - ${DJANGO_STATIC_VOLUME}:/var/www/django/statis
+      - ${DJANGO_STATIC_VOLUME}:/var/www/django/static
     logging: *loki-logging
 
 networks:
