@@ -32,12 +32,10 @@ services:
     ports:
       - "${EXTERNAL_HTTP_PORT:-8000}:8000"
     volumes:
-      - django-media:/var/www/django/media  # since in dev it is app's folder
+      - ${DJANGO_MEDIA_VOLUME}:/var/www/django/media
+      - ${DJANGO_STATIC_VOLUME}:/var/www/django/statis
     logging: *loki-logging
 
 networks:
   observability:
     external: true
-
-volumes:
-  django-media:

@@ -85,13 +85,15 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           DOMAIN_NAME: ${{ vars.DOMAIN_NAME }}
+          DJANGO_MEDIA_VOLUME: ${{ vars.DJANGO_MEDIA_VOLUME }}
+          DJANGO_STATIC_VOLUME: ${{ vars.DJANGO_STATIC_VOLUME }}
         with:
           host: ${{ vars.SSH_HOST }}
           port: ${{ vars.SSH_PORT }}
           username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
-          envs: EXTERNAL_HTTP_PORT,PGSSLROOTCERT,DJANGO_SECRET_KEY,DJANGO_DATABASE_HOST,DJANGO_DATABASE_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,DOMAIN_NAME
+          envs: EXTERNAL_HTTP_PORT,PGSSLROOTCERT,DJANGO_SECRET_KEY,DJANGO_DATABASE_HOST,DJANGO_DATABASE_PORT,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,DOMAIN_NAME,DJANGO_MEDIA_VOLUME,DJANGO_STATIC_VOLUME
           script: |
             cd ${{ vars.PROJECT_DIR }}
             git stash
