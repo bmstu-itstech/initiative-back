@@ -23,7 +23,6 @@ export DJANGO_ENV
 # docs/pages/template/production-checklist.rst
 python /code/manage.py migrate --noinput
 python /code/manage.py collectstatic --noinput --clear
-python /code/manage.py compilemessages
 
 # Precompress static files with brotli and gzip.
 # The list of ignored file types was taken from https://github.com/evansd/whitenoise
