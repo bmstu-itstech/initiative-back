@@ -43,7 +43,7 @@ class DepartmentMapper:
 @final
 @attrs.define(slots=True, frozen=True)
 class MemberMapper:
-    """Базовый маппер для Активиста (потребуется для Leader)."""
+    """Базовый маппер для Активиста."""
 
     _department_mapper: DepartmentMapper
 
@@ -53,9 +53,9 @@ class MemberMapper:
             id=member.pk,
             first_name=member.first_name,
             last_name=member.last_name,
-            patronymic=member.patronymic,
+            patronymic=member.patronymic or None,
             telegram=member.telegram,
-            group=member.group,
+            group=member.group or None,
             birth_date=member.birth_date,
             join_date=member.join_date,
             departments=[
