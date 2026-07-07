@@ -58,8 +58,10 @@ class MemberIn(msgspec.Struct):
         msgspec.Meta(pattern=TELEGRAM_REGEX, max_length=32),
     ]
 
-    patronymic: Annotated[str, msgspec.Meta(max_length=64)] = ''
-    group: Annotated[str, msgspec.Meta(pattern=GROUP_REGEX, max_length=32)] = ''
+    patronymic: Annotated[str, msgspec.Meta(max_length=64)] | None = None
+    group: (
+        Annotated[str, msgspec.Meta(pattern=GROUP_REGEX, max_length=32)] | None
+    ) = None
     birth_date: datetime.date | None = None
 
     department_ids: list[Annotated[int, msgspec.Meta(ge=1, le=2147483647)]] = []
@@ -71,11 +73,11 @@ class MemberOut(msgspec.Struct):
     id: int
     first_name: str
     last_name: str
-    patronymic: str
     telegram: str
-    group: str
-    birth_date: datetime.date | None
     join_date: datetime.date
+    patronymic: str | None = None
+    group: str | None = None
+    birth_date: datetime.date | None = None
     departments: list[DepartmentOut] = []
 
 

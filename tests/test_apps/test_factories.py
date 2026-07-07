@@ -18,6 +18,7 @@ class TestFactoriesAndFixtures:
         """Проверка генерации DTO активиста (включая кастомную группу)."""
         assert isinstance(member_in, MemberIn)
         assert member_in.first_name is not None
+        assert member_in.group is not None
         assert member_in.group.startswith('ИУ')
         assert member_in.group.endswith('Б')
 

@@ -25,7 +25,7 @@ Backend системы для управления активистами Сту
 [![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-336791)](https://www.postgresql.org/docs/18/index.html)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Проект создан на основе шаблона [`wemake-django-template`]((https://github.com/wemake-services/wemake-django-template)). Версия шаблона: [fb03a37](https://github.com/wemake-services/wemake-django-template/tree/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5). Разника с обновлённой версией шаблона [тут]([updated](https://github.com/wemake-services/wemake-django-template/compare/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5...master)).
+Проект создан на основе шаблона [`wemake-django-template`]((https://github.com/wemake-services/wemake-django-template)). Версия шаблона: [fb03a37](https://github.com/wemake-services/wemake-django-template/tree/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5). Разница с обновлённой версией шаблона [тут]([updated](https://github.com/wemake-services/wemake-django-template/compare/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5...master)).
 
 **Контейнирезация:** `Docker` и `Docker Compose` последнией версии
 

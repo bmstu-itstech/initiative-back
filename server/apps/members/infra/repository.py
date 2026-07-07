@@ -349,9 +349,9 @@ class MemberRepo:
                     Member.objects.create(
                         first_name=data.first_name,
                         last_name=data.last_name,
-                        patronymic=data.patronymic,
+                        patronymic=data.patronymic or '',
                         telegram=data.telegram,
-                        group=data.group,
+                        group=data.group or '',
                         birth_date=data.birth_date,
                     ),
                 )
@@ -367,9 +367,9 @@ class MemberRepo:
         """Обновляет данные активиста."""
         member.first_name = data.first_name
         member.last_name = data.last_name
-        member.patronymic = data.patronymic
+        member.patronymic = data.patronymic or ''
         member.telegram = data.telegram
-        member.group = data.group
+        member.group = data.group or ''
         member.birth_date = data.birth_date
         try:
             with transaction.atomic():
