@@ -8,14 +8,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, final
+from typing import TYPE_CHECKING, Any, final
 
 import structlog
 
 if TYPE_CHECKING:
     from django.http import HttpRequest, HttpResponse
 
-LOGGING = {
+LOGGING: dict[str, Any] = {
     'version': 1,
     'disable_existing_loggers': False,
     # We use these formatters in our `'handlers'` configuration.
