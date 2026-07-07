@@ -13,5 +13,11 @@ max_requests = 2000
 max_requests_jitter = 400
 
 accesslog = '-'
+access_log_format = (
+    '{"time": "%(t)s", "remote_ip": "%(h)s", "method": "%(m)s", '
+    '"path": "%(U)s", "status": %(s)s, "time_taken": %(L)s, '
+    '"user_agent": "%(a)s"}'
+)
+
 chdir = '/code'
 worker_tmp_dir = '/dev/shm'  # noqa: S108

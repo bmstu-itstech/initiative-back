@@ -9,6 +9,7 @@ from dmr.settings import Settings
 
 from server.settings.components import config
 from server.settings.components.api import DMR_SETTINGS
+from server.settings.components.logging import LOGGING
 
 # Production flags:
 # https://docs.djangoproject.com/en/6.0/howto/deployment/
@@ -84,3 +85,9 @@ CSRF_COOKIE_SECURE = True
 # https://django-modern-rest.rtfd.io
 
 DMR_SETTINGS[Settings.validate_responses] = False
+
+# Logging
+# Переключаем вывод логов приложения в JSON-формат для сборщика Loki
+
+LOGGING['loggers']['django']['handlers'] = ['json_console']
+LOGGING['loggers']['security']['handlers'] = ['json_console']
