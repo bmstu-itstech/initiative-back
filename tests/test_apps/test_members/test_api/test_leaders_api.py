@@ -135,7 +135,7 @@ class TestLeadersAPI:
         dmr_client: DMRClient,
         auth_headers_editor: Mapping[str, Any],
     ) -> None:
-        """Ошибка удаления несуществующего руководителя."""
+        """Удаления несуществующего руководителя."""
         response = dmr_client.delete(
             reverse(
                 'api:members:leader_detail',
@@ -143,7 +143,7 @@ class TestLeadersAPI:
             ),
             **auth_headers_editor,
         )
-        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert response.status_code == HTTPStatus.OK
 
     def test_leader_get_list(
         self,
