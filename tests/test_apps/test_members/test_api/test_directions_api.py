@@ -56,6 +56,21 @@ class TestDirectionsAPI:
         assert response.status_code == HTTPStatus.CONFLICT
         assert 'уже существует' in response.json()['detail'][0]['msg']
 
+    def test_direction_delete_not_found(
+        self,
+        dmr_client: DMRClient,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
+        """Удаления несуществующего направления."""
+        response = dmr_client.delete(
+            reverse(
+                'api:members:direction_detail',
+                kwargs={'direction_id': 999999},
+            ),
+            **auth_headers_editor,
+        )
+        assert response.status_code == HTTPStatus.OK
+
     def test_direction_get_list(
         self,
         dmr_client: DMRClient,
