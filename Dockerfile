@@ -4,13 +4,10 @@
 
 FROM python:3.13.13-slim-bookworm AS development_build
 
-LABEL maintainer="its-tech"
+LABEL maintainer="bmstu-itstech"
 
 # `DJANGO_ENV` arg is used to make prod / dev builds:
-ARG DJANGO_ENV \
-  # Needed for fixing permissions of files created by Docker:
-  UID=1000 \
-  GID=1000
+ARG DJANGO_ENV
 
 ENV DJANGO_ENV=${DJANGO_ENV} \
   # python:
@@ -62,15 +59,10 @@ COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /usr/local/bin/uv
 
 WORKDIR /code
 
-RUN groupadd -g "${GID}" -r web \
-  && useradd -d '/code' -g web -l -r -u "${UID}" web \
-  && chown web:web -R '/code' \
-  # Static and media files:
-  && mkdir -p '/var/www/django/static' '/var/www/django/media' \
-  && chown web:web '/var/www/django/static' '/var/www/django/media'
+RUN mkdir -p '/var/www/django/static' '/var/www/django/media'
 
 # Copy only requirements, to cache them in docker layer:
-COPY --chown=web:web ./uv.lock ./pyproject.toml /code/
+COPY ./uv.lock ./pyproject.toml /code/
 
 # Project initialization:
 # hadolint ignore=SC2046
@@ -88,14 +80,8 @@ RUN chmod +x '/docker-entrypoint.sh' \
   # Replacing line separator CRLF with LF for Windows users:
   && sed -i 's/\r$//g' '/docker-entrypoint.sh'
 
-# Running as non-root user:
-USER web
-
 # We customize how our app is loaded with the custom entrypoint:
 ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
 
-
-# The following stage is only for production:
-# https://wemake-services.github.io/wemake-django-template/pages/template/production.html
 FROM development_build AS production_build
-COPY --chown=web:web . /code
+COPY . /code
