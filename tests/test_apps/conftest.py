@@ -109,7 +109,7 @@ def member(faker: Faker) -> Member:
             if hasattr(faker, 'middle_name')
             else '',
             group=f'ИУ5-{random.randint(1, 9)}{random.randint(1, 9)}Б',  # noqa: S311, RUF001
-            telegram=faker.user_name()[:32],
+            telegram=MemberInFactory.build().telegram,
             birth_date=faker.date_of_birth(minimum_age=17, maximum_age=25),
         ),
     )

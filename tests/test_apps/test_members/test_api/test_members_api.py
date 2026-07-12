@@ -101,6 +101,21 @@ class TestMembersAPI:
         )
         assert response.status_code == HTTPStatus.CONFLICT
 
+    def test_member_delete_not_found(
+        self,
+        dmr_client: DMRClient,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
+        """Удаления несуществующего активиста."""
+        response = dmr_client.delete(
+            reverse(
+                'api:members:member_detail',
+                kwargs={'member_id': 999999},
+            ),
+            **auth_headers_editor,
+        )
+        assert response.status_code == HTTPStatus.OK
+
     def test_member_get_detail(
         self,
         dmr_client: DMRClient,

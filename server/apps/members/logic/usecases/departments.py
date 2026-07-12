@@ -4,6 +4,7 @@ import attrs
 
 from server.apps.members.infra.mappers import DepartmentMapper
 from server.apps.members.infra.repository import DepartmentRepo
+from server.apps.members.logic import exceptions
 from server.apps.members.logic.value_objects import DepartmentIn, DepartmentOut
 
 
@@ -82,6 +83,9 @@ class DeleteDepartment:
 
     def __call__(self, department_id: int) -> dict[str, str]:
         """Выполняет логику."""
-        department = self._repository.get_by_id(department_id)
-        self._repository.delete(department)
+        try:
+            department = self._repository.get_by_id(department_id)
+            self._repository.delete(department)
+        except exceptions.ObjectNotFoundError:
+            pass
         return {'status': 'success', 'message': 'Department deleted (soft)'}

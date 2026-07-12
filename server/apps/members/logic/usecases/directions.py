@@ -4,6 +4,7 @@ import attrs
 
 from server.apps.members.infra.mappers import DirectionMapper
 from server.apps.members.infra.repository import DirectionRepo
+from server.apps.members.logic import exceptions
 from server.apps.members.logic.value_objects import DirectionIn, DirectionOut
 
 
@@ -75,6 +76,9 @@ class DeleteDirection:
 
     def __call__(self, direction_id: int) -> dict[str, str]:
         """Выполняет логику."""
-        direction = self._repository.get_by_id(direction_id)
-        self._repository.delete(direction)
+        try:
+            direction = self._repository.get_by_id(direction_id)
+            self._repository.delete(direction)
+        except exceptions.ObjectNotFoundError:
+            pass
         return {'status': 'success', 'message': 'Direction deleted (soft)'}

@@ -4,6 +4,7 @@ import attrs
 
 from server.apps.members.infra.mappers import LeaderMapper
 from server.apps.members.infra.repository import LeaderRepo
+from server.apps.members.logic import exceptions
 from server.apps.members.logic.value_objects import LeaderIn, LeaderOut
 
 
@@ -82,6 +83,9 @@ class DeleteLeader:
 
     def __call__(self, leader_id: int) -> dict[str, str]:
         """Выполняет логику."""
-        leader = self._repository.get_by_id(leader_id)
-        self._repository.delete(leader)
+        try:
+            leader = self._repository.get_by_id(leader_id)
+            self._repository.delete(leader)
+        except exceptions.ObjectNotFoundError:
+            pass
         return {'status': 'success', 'message': 'Leader role deleted (soft)'}

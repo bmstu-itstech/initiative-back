@@ -129,6 +129,21 @@ class TestDepartmentsAPI:
         )
         assert response.status_code == HTTPStatus.CONFLICT
 
+    def test_department_delete_not_found(
+        self,
+        dmr_client: DMRClient,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
+        """Удаления несуществующего отдела."""
+        response = dmr_client.delete(
+            reverse(
+                'api:members:department_detail',
+                kwargs={'department_id': 999999},
+            ),
+            **auth_headers_editor,
+        )
+        assert response.status_code == HTTPStatus.OK
+
     def test_department_update_not_found(
         self,
         dmr_client: DMRClient,

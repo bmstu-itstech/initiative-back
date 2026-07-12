@@ -4,6 +4,7 @@ import attrs
 
 from server.apps.members.infra.mappers import MemberMapper
 from server.apps.members.infra.repository import MemberRepo
+from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
 from server.apps.members.logic.value_objects import MemberIn, MemberOut
 
@@ -104,6 +105,9 @@ class DeleteMember:
 
     def __call__(self, member_id: int) -> dict[str, str]:
         """Выполняет логику."""
-        member = self._repository.get_by_id(member_id)
-        self._repository.delete(member)
+        try:
+            member = self._repository.get_by_id(member_id)
+            self._repository.delete(member)
+        except exceptions.ObjectNotFoundError:
+            pass
         return {'status': 'success', 'message': 'Member deleted (soft)'}
