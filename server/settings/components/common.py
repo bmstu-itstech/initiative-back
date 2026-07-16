@@ -8,6 +8,8 @@ For the full list of settings and their config, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+from datetime import timedelta
+
 from server.settings.components import BASE_DIR, config
 
 # Quick-start development settings - unsuitable for production
@@ -199,3 +201,9 @@ PERMISSIONS_POLICY: dict[str, str | list[str]] = {}
 # https://docs.djangoproject.com/en/6.0/ref/settings/#std:setting-EMAIL_TIMEOUT
 
 EMAIL_TIMEOUT = 5
+
+
+# django-axes
+# https://django-axes.readthedocs.io/en/latest/4_configuration.html#configuring-project-settings
+AXES_FAILURE_LIMIT = 10
+AXES_COOLOFF_TIME = timedelta(minutes=30)
