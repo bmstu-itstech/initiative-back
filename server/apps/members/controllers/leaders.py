@@ -26,6 +26,7 @@ from server.apps.members.logic.value_objects import (
     ErrorResponse,
     LeaderIn,
     LeaderOut,
+    SuccessResponse,
 )
 from server.common.di import HasContainer
 
@@ -136,7 +137,7 @@ class LeaderDetailController(
         return self.to_response(result, status_code=HTTPStatus.OK)
 
     @validate(
-        ResponseSpec(dict, status_code=HTTPStatus.OK),
+        ResponseSpec(SuccessResponse, status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Руководители'],
     )
