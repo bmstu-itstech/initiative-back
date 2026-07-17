@@ -20,6 +20,13 @@ class ErrorResponse(msgspec.Struct):
     detail: list[ErrorDetail]
 
 
+class SuccessResponse(msgspec.Struct):
+    """Стандартная схема успешного ответа без данных."""
+
+    status: str
+    message: str
+
+
 class DirectionIn(msgspec.Struct):
     """Схема входящих данных для Направления."""
 
