@@ -1,3 +1,5 @@
+import csv
+import io
 from http import HTTPStatus
 from typing import final, override
 
@@ -7,13 +9,16 @@ from django.http import HttpResponse
 from dmr import Body, Controller, Query
 from dmr.endpoint import Endpoint, validate
 from dmr.errors import ErrorType
+from dmr.files import FileBody
 from dmr.metadata import ResponseSpec
 from dmr.plugins.msgspec import MsgspecSerializer
+from dmr.renderers import FileRenderer, JsonRenderer
 from dmr.security import AuthenticatedHttpRequest
 from dmr.security.jwt.auth import JWTSyncAuth
 
 from server.apps.auth.logic.permissions import require_role
 from server.apps.auth.logic.roles import Role
+from server.apps.members.infra.repository import MemberRepo
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
 from server.apps.members.logic.usecases.members import (
@@ -216,3 +221,70 @@ class DirectionMembersController(
             self.kwargs['direction_id'],
         )
         return self.to_response(result, status_code=HTTPStatus.OK)
+
+
+@final
+class MemberExportController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
+    """Контроллер для экспорта списка активистов в CSV."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
+
+    @validate(
+        ResponseSpec(
+            FileBody,
+            status_code=HTTPStatus.OK,
+        ),
+        tags=['Активисты'],
+        renderers=[JsonRenderer(), FileRenderer()],
+        validate_responses=False,
+    )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
+    def get(self) -> HttpResponse:
+        """Экспорт всех активистов в CSV формат."""
+        members = MemberRepo().get_all_for_export()
+
+        buffer = io.StringIO()
+        buffer.write(
+            '\ufeff',
+        )
+
+        fieldnames = (
+            'id',
+            'last_name',
+            'first_name',
+            'patronymic',
+            'telegram',
+            'group',
+            'birth_date',
+            'join_date',
+        )
+
+        writer = csv.DictWriter(
+            buffer,
+            fieldnames=fieldnames,
+            delimiter=';',
+        )
+        writer.writeheader()
+
+        for member in members:
+            writer.writerow({
+                'id': member.id,
+                'last_name': member.last_name or '',
+                'first_name': member.first_name or '',
+                'patronymic': member.patronymic or '',
+                'telegram': member.telegram or '',
+                'group': member.group or '',
+                'birth_date': str(member.birth_date),
+                'join_date': str(member.join_date),
+            })
+
+        response = HttpResponse(
+            buffer.getvalue().encode('utf-8'),
+            content_type='text/csv; charset=utf-8',
+        )
+        response['Content-Disposition'] = 'attachment; filename="members.csv"'
+        return response

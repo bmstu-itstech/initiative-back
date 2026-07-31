@@ -338,6 +338,14 @@ class MemberRepo:
             ),
         )
 
+    def get_all_for_export(self) -> list[Member]:
+        """Получение всех активистов с предзагрузкой связей для экспорта."""  # noqa: RUF002
+        return list(
+            Member.objects.prefetch_related(
+                'departments__direction',
+            ).all(),
+        )
+
     def create(self, data: MemberIn) -> Member:
         """Создает нового активиста."""
         try:

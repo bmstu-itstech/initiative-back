@@ -223,3 +223,19 @@ class TestMembersAPI:
         )
         assert response.status_code == HTTPStatus.OK
         assert len(response.json()) >= 1
+
+    def test_member_export_success(
+        self,
+        dmr_client: DMRClient,
+        member: Member,
+        auth_headers_editor: Mapping[str, Any],
+    ) -> None:
+        """Успешный экспорт активистов в CSV."""
+        response = dmr_client.get(
+            reverse('api:members:member_export'),
+            **auth_headers_editor,
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert 'text/csv' in response.headers.get('Content-Type', '')
+        assert b'id;last_name;first_name' in response.content
+        assert str(member.id).encode() in response.content
