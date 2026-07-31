@@ -70,8 +70,12 @@ class MemberIn(msgspec.Struct):
         Annotated[str, msgspec.Meta(pattern=GROUP_REGEX, max_length=32)] | None
     ) = None
     birth_date: datetime.date | None = None
+    join_date: datetime.date | None = None
 
-    department_ids: list[Annotated[int, msgspec.Meta(ge=1, le=2147483647)]] = []
+    department_ids: Annotated[
+        list[Annotated[int, msgspec.Meta(ge=1, le=2147483647)]],
+        msgspec.Meta(max_length=50),
+    ] = []
 
 
 class MemberOut(msgspec.Struct):

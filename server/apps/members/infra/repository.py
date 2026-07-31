@@ -355,6 +355,12 @@ class MemberRepo:
                         birth_date=data.birth_date,
                     ),
                 )
+
+                if data.join_date:
+                    Member.objects.filter(id=member.id).update(
+                        join_date=data.join_date,
+                    )
+
                 if data.department_ids:
                     member.departments.set(data.department_ids)
         except IntegrityError as e:
@@ -371,6 +377,10 @@ class MemberRepo:
         member.telegram = data.telegram
         member.group = data.group or ''
         member.birth_date = data.birth_date
+
+        if data.join_date:
+            member.join_date = data.join_date
+
         try:
             with transaction.atomic():
                 member.save()
