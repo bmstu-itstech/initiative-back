@@ -56,6 +56,7 @@ def _inject_members(container: punq.Container) -> None:
     container.register(mappers.LeaderMapper)
     container.register(repository.MemberRepo)
     container.register(mappers.MemberMapper)
+    container.register(mappers.MemberListMapper)
 
     container.register(inject(directions.GetDirectionList))
     container.register(inject(directions.GetDirection))

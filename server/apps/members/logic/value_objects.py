@@ -78,6 +78,19 @@ class MemberIn(msgspec.Struct):
     ] = []
 
 
+class MemberListOut(msgspec.Struct):
+    """Схема исходящих данных Активиста для списков (без отделов)."""
+
+    id: int
+    first_name: str
+    last_name: str
+    telegram: str
+    join_date: datetime.date
+    patronymic: str | None = None
+    group: str | None = None
+    birth_date: datetime.date | None = None
+
+
 class MemberOut(msgspec.Struct):
     """Схема исходящих данных Активиста."""
 

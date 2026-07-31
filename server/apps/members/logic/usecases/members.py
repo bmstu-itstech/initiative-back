@@ -2,11 +2,15 @@ from typing import final
 
 import attrs
 
-from server.apps.members.infra.mappers import MemberMapper
+from server.apps.members.infra.mappers import MemberListMapper, MemberMapper
 from server.apps.members.infra.repository import MemberRepo
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
-from server.apps.members.logic.value_objects import MemberIn, MemberOut
+from server.apps.members.logic.value_objects import (
+    MemberIn,
+    MemberListOut,
+    MemberOut,
+)
 
 
 @final
@@ -15,9 +19,9 @@ class GetMemberList:
     """Юзкейс получения списка активистов."""
 
     _repository: MemberRepo
-    _mapper: MemberMapper
+    _mapper: MemberListMapper
 
-    def __call__(self, query: MemberFilterQuery) -> list[MemberOut]:
+    def __call__(self, query: MemberFilterQuery) -> list[MemberListOut]:
         """Выполняет логику."""
         return [self._mapper(m) for m in self._repository.get_list(query)]
 
@@ -41,9 +45,9 @@ class GetMembersByDepartment:
     """Юзкейс получения активистов отдела."""
 
     _repository: MemberRepo
-    _mapper: MemberMapper
+    _mapper: MemberListMapper
 
-    def __call__(self, department_id: int) -> list[MemberOut]:
+    def __call__(self, department_id: int) -> list[MemberListOut]:
         """Выполняет логику."""
         return [
             self._mapper(m)
@@ -57,9 +61,9 @@ class GetMembersByDirection:
     """Юзкейс получения активистов направления."""
 
     _repository: MemberRepo
-    _mapper: MemberMapper
+    _mapper: MemberListMapper
 
-    def __call__(self, direction_id: int) -> list[MemberOut]:
+    def __call__(self, direction_id: int) -> list[MemberListOut]:
         """Выполняет логику."""
         return [
             self._mapper(m)

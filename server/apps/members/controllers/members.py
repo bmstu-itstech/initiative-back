@@ -28,6 +28,7 @@ from server.apps.members.logic.usecases.members import (
 from server.apps.members.logic.value_objects import (
     ErrorResponse,
     MemberIn,
+    MemberListOut,
     MemberOut,
     SuccessResponse,
 )
@@ -45,7 +46,7 @@ class MembersController(
     auth = (JWTSyncAuth(),)
 
     @validate(
-        ResponseSpec(list[MemberOut], status_code=HTTPStatus.OK),
+        ResponseSpec(list[MemberListOut], status_code=HTTPStatus.OK),
         tags=['Активисты'],
     )
     @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
@@ -180,7 +181,7 @@ class DepartmentMembersController(
     auth = (JWTSyncAuth(),)
 
     @validate(
-        ResponseSpec(list[MemberOut], status_code=HTTPStatus.OK),
+        ResponseSpec(list[MemberListOut], status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )
@@ -204,7 +205,7 @@ class DirectionMembersController(
     auth = (JWTSyncAuth(),)
 
     @validate(
-        ResponseSpec(list[MemberOut], status_code=HTTPStatus.OK),
+        ResponseSpec(list[MemberListOut], status_code=HTTPStatus.OK),
         ResponseSpec(ErrorResponse, status_code=HTTPStatus.NOT_FOUND),
         tags=['Активисты'],
     )

@@ -268,9 +268,7 @@ class MemberRepo:
 
     def get_list(self, query: MemberFilterQuery) -> list[Member]:
         """Получение списка активистов с фильтрацией и пагинацией."""  # noqa: RUF002
-        queryset = Member.objects.prefetch_related(
-            'departments__direction',
-        ).all()
+        queryset = Member.objects.all()
 
         if query.search:
             full_name_expr = Concat(
@@ -327,7 +325,7 @@ class MemberRepo:
     def get_by_department(self, department_id: int) -> list[Member]:
         """Получение активистов конкретного отдела."""
         return list(
-            Member.objects.prefetch_related('departments__direction').filter(
+            Member.objects.filter(
                 departments__id=department_id,
             ),
         )
@@ -335,7 +333,7 @@ class MemberRepo:
     def get_by_direction(self, direction_id: int) -> list[Member]:
         """Получение активистов конкретного направления."""
         return list(
-            Member.objects.prefetch_related('departments__direction').filter(
+            Member.objects.filter(
                 departments__direction_id=direction_id,
             ),
         )
