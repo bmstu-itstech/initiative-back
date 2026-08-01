@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 import pytest
+from django.db import IntegrityError
 
 from server.apps.members.infra.repository import (
     DepartmentRepo,
@@ -418,3 +421,34 @@ class TestMemberRepo:
         )
         res = repo.get_list(query)
         assert len(res) > 0
+
+    def test_member_update_generic_integrity_error(
+        self,
+        member: Member,
+        member_in: MemberIn,
+    ) -> None:
+        """Эмуляция неизвестной ошибки БД для проверки базового обработчика."""
+        repo = MemberRepo()
+
+        with (
+            patch(
+                'server.apps.members.models.Member.save',
+                side_effect=IntegrityError('Random DB error'),
+            ),
+            pytest.raises(exceptions.ObjectAlreadyExistsError) as exc_info,
+        ):
+            repo.update(member, member_in)
+
+        assert 'возможно, указан несуществующий отдел' in str(exc_info.value)
+
+    def test_member_create_no_join_date(
+        self,
+        member_in: MemberIn,
+    ) -> None:
+        """Создание активиста без даты вступления."""
+        repo = MemberRepo()
+        member_in.join_date = None
+        member_in.department_ids = []
+
+        res = repo.create(member_in)
+        assert res.id is not None

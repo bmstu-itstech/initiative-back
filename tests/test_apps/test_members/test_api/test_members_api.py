@@ -1,3 +1,4 @@
+import json
 from collections.abc import Mapping
 from http import HTTPStatus
 from typing import Any, final
@@ -5,8 +6,10 @@ from typing import Any, final
 import msgspec
 import pytest
 from django.urls import reverse
+from dmr.parsers import JsonParser
 from dmr.test import DMRClient
 
+from server.apps.members.controllers.members import FallbackHtmlRenderer
 from server.apps.members.logic.value_objects import MemberIn, MemberOut
 from server.apps.members.models import Department, Member
 
@@ -239,3 +242,29 @@ class TestMembersAPI:
         assert 'text/csv' in response.headers.get('Content-Type', '')
         assert b'id;last_name;first_name' in response.content
         assert str(member.id).encode() in response.content
+
+    def test_member_export_unauthorized_html_fallback(
+        self,
+        dmr_client: DMRClient,
+    ) -> None:
+        """Тест перехвата браузерного запроса без токена (Accept: text/html)."""
+        response = dmr_client.get(
+            reverse('api:members:member_export'),
+            HTTP_ACCEPT='text/html',
+        )
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+        data = json.loads(response.content)
+        assert 'detail' in data
+
+    def test_fallback_html_renderer(self) -> None:
+        """Прямой юнит-тест рендерера для 100% покрытия кода."""
+        renderer = FallbackHtmlRenderer()
+
+        data = {'error': 'test_error'}
+        rendered_bytes = renderer.render(data, serializer_hook=str)
+        assert rendered_bytes == json.dumps(data).encode('utf-8')
+
+        parser = renderer.validation_parser
+        assert isinstance(parser, JsonParser)

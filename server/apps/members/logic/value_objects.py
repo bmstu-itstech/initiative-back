@@ -91,6 +91,19 @@ class MemberListOut(msgspec.Struct):
     birth_date: datetime.date | None = None
 
 
+class MemberExportRow(msgspec.Struct):
+    """Схема одной строки для экспорта активиста в CSV."""
+
+    id: int
+    last_name: str
+    first_name: str
+    patronymic: str
+    telegram: str
+    group: str
+    birth_date: str
+    join_date: str
+
+
 class MemberOut(msgspec.Struct):
     """Схема исходящих данных Активиста."""
 

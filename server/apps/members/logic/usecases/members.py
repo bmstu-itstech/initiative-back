@@ -1,12 +1,20 @@
+import csv
+import io
 from typing import final
 
 import attrs
+import msgspec
 
-from server.apps.members.infra.mappers import MemberListMapper, MemberMapper
+from server.apps.members.infra.mappers import (
+    MemberExportMapper,
+    MemberListMapper,
+    MemberMapper,
+)
 from server.apps.members.infra.repository import MemberRepo
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
 from server.apps.members.logic.value_objects import (
+    MemberExportRow,
     MemberIn,
     MemberListOut,
     MemberOut,
@@ -115,3 +123,30 @@ class DeleteMember:
         except exceptions.ObjectNotFoundError:
             pass
         return {'status': 'success', 'message': 'Member deleted (soft)'}
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class ExportMembersCsv:
+    """Юзкейс выгрузки активистов в формате CSV."""
+
+    _repository: MemberRepo
+    _mapper: MemberExportMapper
+
+    def __call__(self) -> bytes:
+        """Возвращает готовые байты CSV-файла с BOM-маркером."""  # noqa: RUF002
+        members = self._repository.get_all_for_export()
+        export_rows = [self._mapper(m) for m in members]
+
+        fieldnames = [
+            field.name for field in msgspec.structs.fields(MemberExportRow)
+        ]
+
+        buffer = io.StringIO()
+        writer = csv.DictWriter(buffer, fieldnames=fieldnames, delimiter=';')
+        writer.writeheader()
+
+        for row in export_rows:
+            writer.writerow(msgspec.structs.asdict(row))
+
+        return buffer.getvalue().encode('utf-8-sig')
