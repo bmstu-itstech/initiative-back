@@ -1,7 +1,7 @@
-import csv
-import io
+import json
+from collections.abc import Callable
 from http import HTTPStatus
-from typing import final, override
+from typing import Any, final, override
 
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -9,21 +9,22 @@ from django.http import HttpResponse
 from dmr import Body, Controller, Query
 from dmr.endpoint import Endpoint, validate
 from dmr.errors import ErrorType
-from dmr.files import FileBody
+from dmr.files import FileResponseSpec
 from dmr.metadata import ResponseSpec
+from dmr.parsers import JsonParser, Parser
 from dmr.plugins.msgspec import MsgspecSerializer
-from dmr.renderers import FileRenderer, JsonRenderer
+from dmr.renderers import FileRenderer, JsonRenderer, Renderer
 from dmr.security import AuthenticatedHttpRequest
 from dmr.security.jwt.auth import JWTSyncAuth
 
 from server.apps.auth.logic.permissions import require_role
 from server.apps.auth.logic.roles import Role
-from server.apps.members.infra.repository import MemberRepo
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
 from server.apps.members.logic.usecases.members import (
     CreateMember,
     DeleteMember,
+    ExportMembersCsv,
     GetMember,
     GetMemberList,
     GetMembersByDepartment,
@@ -223,6 +224,32 @@ class DirectionMembersController(
         return self.to_response(result, status_code=HTTPStatus.OK)
 
 
+class FallbackHtmlRenderer(Renderer):
+    """
+    Архитектурный фикс (Content Negotiation) для браузерных запросов.
+
+    Перехватывает заголовок Accept: text/html и отдает ошибки в
+    виде JSON, предотвращая падение DMR с KeyError('text/html').
+    """  # noqa: RUF002
+
+    content_type = 'text/html'
+
+    @override
+    def render(
+        self,
+        to_serialize: Any,
+        serializer_hook: Callable[[Any], Any],
+    ) -> bytes:
+        """Сериализует ответ в JSON для браузера."""
+        return json.dumps(to_serialize, default=serializer_hook).encode('utf-8')
+
+    @property
+    @override
+    def validation_parser(self) -> Parser:
+        """Возвращает парсер для валидации сгенерированного ответа."""
+        return JsonParser()
+
+
 @final
 class MemberExportController(
     HasContainer,
@@ -234,57 +261,20 @@ class MemberExportController(
     auth = (JWTSyncAuth(),)
 
     @validate(
-        ResponseSpec(
-            FileBody,
-            status_code=HTTPStatus.OK,
-        ),
+        FileResponseSpec(),
         tags=['Активисты'],
-        renderers=[JsonRenderer(), FileRenderer()],
+        renderers=[JsonRenderer(), FileRenderer(), FallbackHtmlRenderer()],
         validate_responses=False,
     )
     @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
     def get(self) -> HttpResponse:
         """Экспорт всех активистов в CSV формат."""
-        members = MemberRepo().get_all_for_export()
-
-        buffer = io.StringIO()
-        buffer.write(
-            '\ufeff',
-        )
-
-        fieldnames = (
-            'id',
-            'last_name',
-            'first_name',
-            'patronymic',
-            'telegram',
-            'group',
-            'birth_date',
-            'join_date',
-        )
-
-        writer = csv.DictWriter(
-            buffer,
-            fieldnames=fieldnames,
-            delimiter=';',
-        )
-        writer.writeheader()
-
-        for member in members:
-            writer.writerow({
-                'id': member.id,
-                'last_name': member.last_name or '',
-                'first_name': member.first_name or '',
-                'patronymic': member.patronymic or '',
-                'telegram': member.telegram or '',
-                'group': member.group or '',
-                'birth_date': str(member.birth_date),
-                'join_date': str(member.join_date),
-            })
+        csv_bytes = self.resolve(ExportMembersCsv)()
 
         response = HttpResponse(
-            buffer.getvalue().encode('utf-8'),
+            csv_bytes,
             content_type='text/csv; charset=utf-8',
         )
         response['Content-Disposition'] = 'attachment; filename="members.csv"'
+
         return response

@@ -6,6 +6,7 @@ from server.apps.members.logic.value_objects import (
     DepartmentOut,
     DirectionOut,
     LeaderOut,
+    MemberExportRow,
     MemberListOut,
     MemberOut,
 )
@@ -81,6 +82,29 @@ class MemberListMapper:
             group=member.group or None,
             birth_date=member.birth_date,
             join_date=member.join_date,
+        )
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class MemberExportMapper:
+    """Маппер для подготовки данных активиста к экспорту."""
+
+    def __call__(self, member: Member) -> MemberExportRow:
+        """Выполняет преобразование модели в DTO экспорта."""
+        return MemberExportRow(
+            id=member.pk,
+            last_name=member.last_name or '',
+            first_name=member.first_name or '',
+            patronymic=member.patronymic or '',
+            telegram=member.telegram or '',
+            group=member.group or '',
+            birth_date=(
+                member.birth_date.strftime('%Y-%m-%d')
+                if member.birth_date is not None
+                else ''
+            ),
+            join_date=member.join_date.strftime('%Y-%m-%d'),
         )
 
 

@@ -57,6 +57,7 @@ def _inject_members(container: punq.Container) -> None:
     container.register(repository.MemberRepo)
     container.register(mappers.MemberMapper)
     container.register(mappers.MemberListMapper)
+    container.register(mappers.MemberExportMapper)
 
     container.register(inject(directions.GetDirectionList))
     container.register(inject(directions.GetDirection))
@@ -83,6 +84,7 @@ def _inject_members(container: punq.Container) -> None:
     container.register(inject(members.CreateMember))
     container.register(inject(members.UpdateMember))
     container.register(inject(members.DeleteMember))
+    container.register(inject(members.ExportMembersCsv))
 
 
 def populate_dependencies(container: punq.Container) -> punq.Container:
