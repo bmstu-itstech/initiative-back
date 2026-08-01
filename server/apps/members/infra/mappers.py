@@ -6,6 +6,7 @@ from server.apps.members.logic.value_objects import (
     DepartmentOut,
     DirectionOut,
     LeaderOut,
+    MemberListOut,
     MemberOut,
 )
 from server.apps.members.models import Department, Direction, Leader, Member
@@ -61,6 +62,25 @@ class MemberMapper:
             departments=[
                 self._department_mapper(d) for d in member.departments.all()
             ],
+        )
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class MemberListMapper:
+    """Маппер для Активиста в списке (без подгрузки отделов)."""
+
+    def __call__(self, member: Member) -> MemberListOut:
+        """Выполняет преобразование."""
+        return MemberListOut(
+            id=member.pk,
+            first_name=member.first_name,
+            last_name=member.last_name,
+            patronymic=member.patronymic or None,
+            telegram=member.telegram,
+            group=member.group or None,
+            birth_date=member.birth_date,
+            join_date=member.join_date,
         )
 
 

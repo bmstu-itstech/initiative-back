@@ -16,6 +16,7 @@ from server.apps.members.controllers.members import (
     DepartmentMembersController,
     DirectionMembersController,
     MemberDetailController,
+    MemberExportController,
     MembersController,
 )
 
@@ -53,6 +54,11 @@ router = Router(
             'direction/<int:direction_id>/',
             DirectionMembersController.as_view(),
             name='direction_members',
+        ),
+        path(
+            'export/',
+            MemberExportController.as_view(),
+            name='member_export',
         ),
         path('', MembersController.as_view(), name='members'),
         path(

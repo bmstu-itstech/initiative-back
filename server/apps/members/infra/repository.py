@@ -268,9 +268,7 @@ class MemberRepo:
 
     def get_list(self, query: MemberFilterQuery) -> list[Member]:
         """Получение списка активистов с фильтрацией и пагинацией."""  # noqa: RUF002
-        queryset = Member.objects.prefetch_related(
-            'departments__direction',
-        ).all()
+        queryset = Member.objects.all()
 
         if query.search:
             full_name_expr = Concat(
@@ -327,7 +325,7 @@ class MemberRepo:
     def get_by_department(self, department_id: int) -> list[Member]:
         """Получение активистов конкретного отдела."""
         return list(
-            Member.objects.prefetch_related('departments__direction').filter(
+            Member.objects.filter(
                 departments__id=department_id,
             ),
         )
@@ -335,9 +333,17 @@ class MemberRepo:
     def get_by_direction(self, direction_id: int) -> list[Member]:
         """Получение активистов конкретного направления."""
         return list(
-            Member.objects.prefetch_related('departments__direction').filter(
+            Member.objects.filter(
                 departments__direction_id=direction_id,
             ),
+        )
+
+    def get_all_for_export(self) -> list[Member]:
+        """Получение всех активистов с предзагрузкой связей для экспорта."""  # noqa: RUF002
+        return list(
+            Member.objects.prefetch_related(
+                'departments__direction',
+            ).all(),
         )
 
     def create(self, data: MemberIn) -> Member:
@@ -355,6 +361,12 @@ class MemberRepo:
                         birth_date=data.birth_date,
                     ),
                 )
+
+                if data.join_date:
+                    Member.objects.filter(id=member.id).update(
+                        join_date=data.join_date,
+                    )
+
                 if data.department_ids:
                     member.departments.set(data.department_ids)
         except IntegrityError as e:
@@ -371,6 +383,10 @@ class MemberRepo:
         member.telegram = data.telegram
         member.group = data.group or ''
         member.birth_date = data.birth_date
+
+        if data.join_date:
+            member.join_date = data.join_date
+
         try:
             with transaction.atomic():
                 member.save()
