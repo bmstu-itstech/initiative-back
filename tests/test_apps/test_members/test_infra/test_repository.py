@@ -445,7 +445,7 @@ class TestMemberRepo:
         self,
         member_in: MemberIn,
     ) -> None:
-        """Создание активиста без даты вступления (покрытие ветки if data.join_date = False)."""
+        """Создание активиста без даты вступления."""
         repo = MemberRepo()
         member_in.join_date = None
         member_in.department_ids = []
