@@ -2,10 +2,17 @@ from typing import final
 
 import attrs
 
-from server.apps.members.infra.mappers import DirectionMapper
+from server.apps.members.infra.mappers import (
+    DirectionMapper,
+    StructureDirectionMapper,
+)
 from server.apps.members.infra.repository import DirectionRepo
 from server.apps.members.logic import exceptions
-from server.apps.members.logic.value_objects import DirectionIn, DirectionOut
+from server.apps.members.logic.value_objects import (
+    DirectionIn,
+    DirectionOut,
+    StructureDirectionOut,
+)
 
 
 @final
@@ -82,3 +89,16 @@ class DeleteDirection:
         except exceptions.ObjectNotFoundError:
             pass
         return {'status': 'success', 'message': 'Direction deleted (soft)'}
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class GetStructure:
+    """Юзкейс получения полной структуры организации."""
+
+    _repository: DirectionRepo
+    _mapper: StructureDirectionMapper
+
+    def __call__(self) -> list[StructureDirectionOut]:
+        """Выполняет логику."""
+        return [self._mapper(d) for d in self._repository.get_structure()]

@@ -4,7 +4,11 @@ from server.apps.members.infra.mappers import (
     DepartmentMapper,
     DirectionMapper,
     LeaderMapper,
+    MemberListMapper,
     MemberMapper,
+    StructureDepartmentMapper,
+    StructureDirectionMapper,
+    StructureLeaderMapper,
 )
 from server.apps.members.models import Department, Direction, Leader, Member
 
@@ -99,3 +103,40 @@ class TestMappers:
         assert result.direction is not None
         assert result.direction.id == leader_direction.direction.pk  # type: ignore[union-attr]
         assert result.department is None
+
+    def test_structure_mappers(
+        self,
+        direction: Direction,
+        department: Department,
+        leader: Leader,
+        member: Member,
+    ) -> None:
+        """Проверка мапперов для древовидной структуры."""
+        department.members.add(member)  # type: ignore[attr-defined]
+
+        member_list_mapper = MemberListMapper()
+        structure_leader_mapper = StructureLeaderMapper(
+            member_mapper=member_list_mapper,
+        )
+        structure_department_mapper = StructureDepartmentMapper(
+            leader_mapper=structure_leader_mapper,
+            member_mapper=member_list_mapper,
+        )
+        structure_direction_mapper = StructureDirectionMapper(
+            leader_mapper=structure_leader_mapper,
+            department_mapper=structure_department_mapper,
+        )
+
+        leader_out = structure_leader_mapper(leader)
+        assert leader_out.id == leader.pk
+        assert leader_out.position == leader.position
+        assert leader_out.member.id == member.pk
+
+        dept_out = structure_department_mapper(department)
+        assert dept_out.id == department.pk
+        assert len(dept_out.leaders) >= 1
+        assert len(dept_out.members) >= 1
+
+        dir_out = structure_direction_mapper(direction)
+        assert dir_out.id == direction.pk
+        assert len(dir_out.departments) >= 1

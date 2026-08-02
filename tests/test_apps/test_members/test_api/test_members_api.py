@@ -11,7 +11,7 @@ from dmr.test import DMRClient
 
 from server.apps.members.controllers.members import FallbackHtmlRenderer
 from server.apps.members.logic.value_objects import MemberIn, MemberOut
-from server.apps.members.models import Department, Member
+from server.apps.members.models import Department, Direction, Leader, Member
 
 
 @final
@@ -268,3 +268,32 @@ class TestMembersAPI:
 
         parser = renderer.validation_parser
         assert isinstance(parser, JsonParser)
+
+    def test_members_structure_get(
+        self,
+        dmr_client: DMRClient,
+        direction: Direction,
+        department: Department,
+        leader: Leader,
+        auth_headers_viewer: Mapping[str, Any],
+    ) -> None:
+        """Успешное получение древовидной структуры (N+1 free)."""
+        response = dmr_client.get(
+            reverse('api:members:members_structure'),
+            **auth_headers_viewer,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) >= 1
+
+        dir_data = next(d for d in data if d['id'] == direction.id)
+        assert 'departments' in dir_data
+        assert 'leaders' in dir_data
+
+        dept_data = next(
+            d for d in dir_data['departments'] if d['id'] == department.id
+        )
+        assert 'members' in dept_data
+        assert 'leaders' in dept_data

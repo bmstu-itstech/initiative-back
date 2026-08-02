@@ -5,18 +5,18 @@ import attrs
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
-from django.db.models import Value
+from django.db.models import Prefetch, Value
 from django.db.models.functions import Concat
-
-try:
-    from zeal import zeal_ignore
-except ImportError:  # pragma: no cover
-    zeal_ignore = nullcontext  # pragma: no cover
 
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
 from server.apps.members.logic.value_objects import MemberIn
 from server.apps.members.models import Department, Direction, Leader, Member
+
+try:
+    from zeal import zeal_ignore
+except ImportError:  # pragma: no cover
+    zeal_ignore = nullcontext  # pragma: no cover
 
 
 @final
@@ -36,6 +36,26 @@ class DirectionRepo:
             raise exceptions.ObjectNotFoundError(
                 'Направление не найдено.',
             ) from None
+
+    def get_structure(self) -> list[Direction]:
+        """
+        Получение всей структуры.
+
+        Направления -> Отделы -> Руководители и Активисты.
+        """
+        return list(
+            Direction.objects.prefetch_related(
+                Prefetch(
+                    'leaders',
+                    queryset=Leader.objects.select_related('member'),
+                ),
+                Prefetch(
+                    'departments__leaders',
+                    queryset=Leader.objects.select_related('member'),
+                ),
+                'departments__members',
+            ).all(),
+        )
 
     def create(self, name: str) -> Direction:
         """Создает новое направление."""

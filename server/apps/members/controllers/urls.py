@@ -18,6 +18,7 @@ from server.apps.members.controllers.members import (
     MemberDetailController,
     MemberExportController,
     MembersController,
+    MembersStructureController,
 )
 
 router = Router(
@@ -59,6 +60,11 @@ router = Router(
             'export/',
             MemberExportController.as_view(),
             name='member_export',
+        ),
+        path(
+            'structure/',
+            MembersStructureController.as_view(),
+            name='members_structure',
         ),
         path('', MembersController.as_view(), name='members'),
         path(
