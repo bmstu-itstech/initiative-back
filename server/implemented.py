@@ -58,12 +58,16 @@ def _inject_members(container: punq.Container) -> None:
     container.register(mappers.MemberMapper)
     container.register(mappers.MemberListMapper)
     container.register(mappers.MemberExportMapper)
+    container.register(mappers.StructureLeaderMapper)
+    container.register(mappers.StructureDepartmentMapper)
+    container.register(mappers.StructureDirectionMapper)
 
     container.register(inject(directions.GetDirectionList))
     container.register(inject(directions.GetDirection))
     container.register(inject(directions.CreateDirection))
     container.register(inject(directions.UpdateDirection))
     container.register(inject(directions.DeleteDirection))
+    container.register(inject(directions.GetStructure))
 
     container.register(inject(departments.GetDepartmentList))
     container.register(inject(departments.GetDepartment))

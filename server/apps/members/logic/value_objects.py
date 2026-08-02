@@ -139,3 +139,33 @@ class LeaderOut(msgspec.Struct):
     member: MemberOut
     department: DepartmentOut | None = None
     direction: DirectionOut | None = None
+
+
+class StructureLeaderOut(msgspec.Struct):
+    """Схема руководителя для вывода в структуре."""
+
+    id: int
+    position: str
+    member: MemberListOut
+
+
+class StructureDepartmentOut(msgspec.Struct):
+    """
+    Схема отдела для вывода в структуре.
+
+    Содержит руководителей и активистов.
+    """
+
+    id: int
+    name: str
+    leaders: list[StructureLeaderOut] = []
+    members: list[MemberListOut] = []
+
+
+class StructureDirectionOut(msgspec.Struct):
+    """Схема направления для структуры (корень иерархии)."""
+
+    id: int
+    name: str
+    leaders: list[StructureLeaderOut] = []
+    departments: list[StructureDepartmentOut] = []

@@ -21,6 +21,7 @@ from server.apps.auth.logic.permissions import require_role
 from server.apps.auth.logic.roles import Role
 from server.apps.members.logic import exceptions
 from server.apps.members.logic.queries import MemberFilterQuery
+from server.apps.members.logic.usecases.directions import GetStructure
 from server.apps.members.logic.usecases.members import (
     CreateMember,
     DeleteMember,
@@ -36,9 +37,35 @@ from server.apps.members.logic.value_objects import (
     MemberIn,
     MemberListOut,
     MemberOut,
+    StructureDirectionOut,
     SuccessResponse,
 )
 from server.common.di import HasContainer
+
+
+@final
+class MembersStructureController(
+    HasContainer,
+    Controller[MsgspecSerializer],
+):
+    """Контроллер для получения древовидной структуры организации."""
+
+    request: AuthenticatedHttpRequest[User]
+    auth = (JWTSyncAuth(),)
+
+    @validate(
+        ResponseSpec(list[StructureDirectionOut], status_code=HTTPStatus.OK),
+        tags=['Активисты'],
+    )
+    @require_role([Role.VIEWER, Role.EDITOR, Role.ADMIN])
+    def get(self) -> HttpResponse:
+        """
+        Получение структуры.
+
+        (Направления -> Отделы -> Руководители и Активисты).
+        """
+        result = self.resolve(GetStructure)()
+        return self.to_response(result, status_code=HTTPStatus.OK)
 
 
 @final

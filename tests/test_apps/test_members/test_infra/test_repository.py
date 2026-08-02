@@ -40,6 +40,29 @@ class TestDirectionRepo:
         with pytest.raises(exceptions.ObjectNotFoundError):
             repo.get_by_id(9999)
 
+    def test_get_structure(
+        self,
+        direction: Direction,
+        department: Department,
+        leader: Leader,
+        member: Member,
+    ) -> None:
+        """Тест получения всей структуры с предзагрузкой связей (N+1 free)."""  # noqa: RUF002
+        repo = DirectionRepo()
+        department.members.add(member)  # type: ignore[attr-defined]
+        department.leaders.add(leader)
+
+        structure = repo.get_structure()
+        assert len(structure) >= 1
+
+        dir_obj = next(d for d in structure if d.id == direction.id)
+        assert dir_obj.departments.count() >= 1
+
+        dept_obj = dir_obj.departments.first()
+        assert dept_obj is not None
+        assert dept_obj.leaders.count() >= 1
+        assert dept_obj.members.count() >= 1  # type: ignore[attr-defined]
+
 
 @pytest.mark.django_db
 class TestDepartmentRepo:

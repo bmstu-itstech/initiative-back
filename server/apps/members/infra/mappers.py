@@ -9,6 +9,9 @@ from server.apps.members.logic.value_objects import (
     MemberExportRow,
     MemberListOut,
     MemberOut,
+    StructureDepartmentOut,
+    StructureDirectionOut,
+    StructureLeaderOut,
 )
 from server.apps.members.models import Department, Direction, Leader, Member
 
@@ -133,4 +136,62 @@ class LeaderMapper:
                 if leader.direction
                 else None
             ),
+        )
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class StructureLeaderMapper:
+    """Маппер руководителя для дерева структуры."""
+
+    _member_mapper: MemberListMapper
+
+    def __call__(self, leader: Leader) -> StructureLeaderOut:
+        """Выполняет преобразование."""
+        return StructureLeaderOut(
+            id=leader.pk,
+            position=leader.position,
+            member=self._member_mapper(leader.member),
+        )
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class StructureDepartmentMapper:
+    """Маппер отдела для дерева структуры."""
+
+    _leader_mapper: StructureLeaderMapper
+    _member_mapper: MemberListMapper
+
+    def __call__(self, department: Department) -> StructureDepartmentOut:
+        """Выполняет преобразование."""
+        return StructureDepartmentOut(
+            id=department.pk,
+            name=department.name,
+            leaders=[
+                self._leader_mapper(lead) for lead in department.leaders.all()
+            ],
+            members=[self._member_mapper(m) for m in department.members.all()],  # type: ignore[attr-defined]
+        )
+
+
+@final
+@attrs.define(slots=True, frozen=True)
+class StructureDirectionMapper:
+    """Маппер направления (корень) для дерева структуры."""
+
+    _leader_mapper: StructureLeaderMapper
+    _department_mapper: StructureDepartmentMapper
+
+    def __call__(self, direction: Direction) -> StructureDirectionOut:
+        """Выполняет преобразование."""
+        return StructureDirectionOut(
+            id=direction.pk,
+            name=direction.name,
+            leaders=[
+                self._leader_mapper(lead) for lead in direction.leaders.all()
+            ],
+            departments=[
+                self._department_mapper(d) for d in direction.departments.all()
+            ],
         )
