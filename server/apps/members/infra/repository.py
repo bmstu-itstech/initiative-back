@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from contextlib import nullcontext
 from typing import NoReturn, cast, final
 
@@ -5,7 +6,7 @@ import attrs
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
-from django.db.models import Prefetch, Value
+from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 
 from server.apps.members.logic import exceptions
@@ -17,6 +18,21 @@ try:
     from zeal import zeal_ignore
 except ImportError:  # pragma: no cover
     zeal_ignore = nullcontext  # pragma: no cover
+
+
+def _attach_structure_leaders(
+    leaders: Iterable[Leader],
+    by_direction: dict[int | None, Direction],
+    by_department: dict[int | None, Department],
+) -> None:
+    """Распределяет руководителей без загрузки связанных подразделений."""
+    for leader in leaders:
+        direction = by_direction.get(leader.direction_id)
+        if direction is not None:
+            direction.__dict__['_structure_leaders'].append(leader)
+        department = by_department.get(leader.department_id)
+        if department is not None:
+            department.__dict__['_structure_leaders'].append(leader)
 
 
 @final
@@ -41,21 +57,45 @@ class DirectionRepo:
         """
         Получение всей структуры.
 
-        Направления -> Отделы -> Руководители и Активисты.
+        Собирает связи в списки, чтобы избежать накладных расходов QuerySet.
         """
-        return list(
-            Direction.objects.prefetch_related(
-                Prefetch(
-                    'leaders',
-                    queryset=Leader.objects.select_related('member'),
-                ),
-                Prefetch(
-                    'departments__leaders',
-                    queryset=Leader.objects.select_related('member'),
-                ),
-                'departments__members',
-            ).all(),
+        directions = list(Direction.objects.all())
+        if not directions:
+            return directions
+        by_direction: dict[int | None, Direction] = {
+            item.pk: item for item in directions
+        }
+        for direction in directions:
+            direction.__dict__['_structure_leaders'] = []
+            direction.__dict__['_structure_departments'] = []
+        departments = list(
+            Department.objects.filter(direction_id__in=by_direction),
         )
+        by_department: dict[int | None, Department] = {
+            item.pk: item for item in departments
+        }
+        for department in departments:
+            department.__dict__['_structure_leaders'] = []
+            department.__dict__['_structure_members'] = []
+            by_direction[department.direction_id].__dict__[
+                '_structure_departments'
+            ].append(department)
+        leaders = Leader.objects.filter(
+            Q(direction_id__in=by_direction)
+            | Q(department_id__in=by_department),
+        ).select_related('member')
+        _attach_structure_leaders(leaders, by_direction, by_department)
+        members = Member.objects.filter(
+            departments__id__in=by_department,
+        ).annotate(
+            _structure_department_id=F('departments__id'),
+        )
+        for member in members:
+            department_id = member.__dict__['_structure_department_id']
+            by_department[department_id].__dict__['_structure_members'].append(
+                member,
+            )
+        return directions
 
     def create(self, name: str) -> Direction:
         """Создает новое направление."""

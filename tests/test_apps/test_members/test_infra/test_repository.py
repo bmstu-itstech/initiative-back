@@ -1,8 +1,16 @@
+from collections.abc import Callable
+from contextlib import AbstractContextManager
 from unittest.mock import patch
 
 import pytest
 from django.db import IntegrityError
 
+from server.apps.members.infra.mappers import (
+    MemberListMapper,
+    StructureDepartmentMapper,
+    StructureDirectionMapper,
+    StructureLeaderMapper,
+)
 from server.apps.members.infra.repository import (
     DepartmentRepo,
     DirectionRepo,
@@ -46,22 +54,63 @@ class TestDirectionRepo:
         department: Department,
         leader: Leader,
         member: Member,
+        django_assert_num_queries: Callable[
+            [int],
+            AbstractContextManager[None],
+        ],
     ) -> None:
-        """Тест получения всей структуры с предзагрузкой связей (N+1 free)."""  # noqa: RUF002
-        repo = DirectionRepo()
+        """Проверяет загрузку структуры и преобразование без лишних запросов."""
         department.members.add(member)  # type: ignore[attr-defined]
-        department.leaders.add(leader)
+        second_direction = Direction.objects.create(name='Second direction')
+        second_department = Department.objects.create(
+            name='Second department',
+            direction=second_direction,
+        )
+        second_department.members.add(member)
+        direction_leader = Leader.objects.create(
+            member=member,
+            position='Direction head',
+            direction=direction,
+        )
+        member_mapper = MemberListMapper()
+        leader_mapper = StructureLeaderMapper(member_mapper)
+        direction_mapper = StructureDirectionMapper(
+            leader_mapper,
+            StructureDepartmentMapper(leader_mapper, member_mapper),
+        )
+        with django_assert_num_queries(4):
+            directions = DirectionRepo().get_structure()
+        with django_assert_num_queries(0):
+            structure = [direction_mapper(item) for item in directions]
+        assert len(structure) == 2
+        first = next(item for item in structure if item.id == direction.pk)
+        second = next(
+            item for item in structure if item.id == second_direction.pk
+        )
+        assert first.leaders[0].id == direction_leader.pk
+        assert first.departments[0].id == department.pk
+        assert first.departments[0].leaders[0].id == leader.pk
+        assert first.departments[0].members[0].id == member.pk
+        assert second.leaders == []
+        assert second.departments[0].leaders == []
+        assert second.departments[0].members[0].id == member.pk
 
-        structure = repo.get_structure()
-        assert len(structure) >= 1
+        member.delete()
+        second_direction.delete()
+        direction_leader.delete()
+        with django_assert_num_queries(4):
+            directions = DirectionRepo().get_structure()
+        with django_assert_num_queries(0):
+            result = [direction_mapper(item) for item in directions]
+        assert len(result) == 1
+        assert result[0].leaders == []
+        assert len(result[0].departments) == 1
+        assert result[0].departments[0].members == []
+        assert result[0].departments[0].leaders[0].member.id == member.pk
 
-        dir_obj = next(d for d in structure if d.id == direction.id)
-        assert dir_obj.departments.count() >= 1
-
-        dept_obj = dir_obj.departments.first()
-        assert dept_obj is not None
-        assert dept_obj.leaders.count() >= 1
-        assert dept_obj.members.count() >= 1  # type: ignore[attr-defined]
+        direction.delete()
+        with django_assert_num_queries(1):
+            assert DirectionRepo().get_structure() == []
 
 
 @pytest.mark.django_db
