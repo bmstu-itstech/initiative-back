@@ -77,7 +77,6 @@ jobs:
         env:
           EXTERNAL_HTTP_PORT: ${{ vars.EXTERNAL_HTTP_PORT }}
           PGSSLROOTCERT: ${{ vars.PGSSLROOTCERT }}
-          LOKI_ADDRESS: ${{ vars.LOKI_ADDRESS }}
           DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
           DJANGO_DATABASE_HOST: ${{ secrets.DJANGO_DATABASE_HOST }}
           DJANGO_DATABASE_PORT: ${{ secrets.DJANGO_DATABASE_PORT }}
@@ -100,3 +99,4 @@ jobs:
             git checkout main
             git pull origin main
             docker compose -f docker-compose.ci.yaml up --build -d
+            docker system prune -f
