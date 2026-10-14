@@ -165,13 +165,17 @@ class StructureDepartmentMapper:
 
     def __call__(self, department: Department) -> StructureDepartmentOut:
         """Выполняет преобразование."""
+        leaders = getattr(department, '_structure_leaders', None)
+        if leaders is None:
+            leaders = department.leaders.all()
+        members = getattr(department, '_structure_members', None)
+        if members is None:
+            members = department.members.all()  # type: ignore[attr-defined]
         return StructureDepartmentOut(
             id=department.pk,
             name=department.name,
-            leaders=[
-                self._leader_mapper(lead) for lead in department.leaders.all()
-            ],
-            members=[self._member_mapper(m) for m in department.members.all()],  # type: ignore[attr-defined]
+            leaders=[self._leader_mapper(lead) for lead in leaders],
+            members=[self._member_mapper(m) for m in members],
         )
 
 
@@ -185,13 +189,15 @@ class StructureDirectionMapper:
 
     def __call__(self, direction: Direction) -> StructureDirectionOut:
         """Выполняет преобразование."""
+        leaders = getattr(direction, '_structure_leaders', None)
+        if leaders is None:
+            leaders = direction.leaders.all()
+        departments = getattr(direction, '_structure_departments', None)
+        if departments is None:
+            departments = direction.departments.all()
         return StructureDirectionOut(
             id=direction.pk,
             name=direction.name,
-            leaders=[
-                self._leader_mapper(lead) for lead in direction.leaders.all()
-            ],
-            departments=[
-                self._department_mapper(d) for d in direction.departments.all()
-            ],
+            leaders=[self._leader_mapper(lead) for lead in leaders],
+            departments=[self._department_mapper(d) for d in departments],
         )
