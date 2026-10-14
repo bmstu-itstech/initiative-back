@@ -340,10 +340,12 @@ uv sync
 ### Корневая директория
 
 * `pyproject.toml` / `uv.lock` — конфигурация пакетов и строгий лок-файл зависимостей для менеджера `uv`.
-* `docker-compose.yml` / `docker-compose.override.yml` — оркестрация контейнеров для разработки.
+* `Dockerfile` — сборка образов для разработки и production.
+* `docker-compose.yaml` / `docker-compose.override.yaml` — оркестрация контейнеров для разработки.
+* `docker-compose.ci.yaml` — конфигурация production-контейнера с внешней БД и томами static/media.
 * `manage.py` — стандартная точка входа для команд Django.
 * `schemathesis.toml` — конфигурация для property-based тестирования API.
-* `.github/workflows/test.yml` — пайплайн непрерывной интеграции (CI) для автоматического запуска тестов и линтеров.
+* `.github/workflows/initiative.yaml` — проверки Ruff, Mypy и Pytest; после успешных проверок push в `main` запускает развёртывание и очистку неиспользуемых ресурсов Docker через `docker system prune -f`.
 
 ### `config/`
 
@@ -354,10 +356,11 @@ uv sync
 
 ### `docker/`
 
-Вся инфраструктура для сборки контейнеров.
+Скрипты запуска и проверки состояния контейнера. Dockerfile находится в корне проекта.
 
-* `django/` — Dockerfile, скрипты инициализации (`entrypoint.sh`), настройки Gunicorn для backend-сервера.
-* `caddy/` — настройки веб-сервера (если используется для раздачи статики в prod).
+* `entrypoint.sh` — выполнение команды контейнера через Tini.
+* `gunicorn.sh` / `gunicorn_config.py` — production-запуск и настройки Gunicorn.
+* `healthcheck.sh` — проверка доступности `/health/`.
 
 ### `server/` (Ядро приложения)
 

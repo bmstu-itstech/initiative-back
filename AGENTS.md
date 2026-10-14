@@ -61,7 +61,8 @@ docker compose exec web python manage.py createsuperuser
 
 - `createsuperuser` выполняй при необходимости локального администратора; команды контейнера запускай через `docker compose exec web`.
 - Локальная документация API: `/docs/swagger/`, `/docs/redoc/`, `/docs/stoplight/`, `/docs/scalar/`; схема — `/docs/openapi.json/`; состояние — `/health/`.
-- `Dockerfile` находится в корне; скрипты запуска — в `docker/`. Production запускает WSGI через Gunicorn, использует внешнюю БД, сеть `observability` и драйвер логирования Loki.
+- `Dockerfile` находится в корне; скрипты запуска — в `docker/`. Production запускает WSGI через Gunicorn и использует внешнюю БД; Compose больше не задаёт Loki и сеть `observability`.
+- Dockerfile не задаёт `USER`: по умолчанию процессы контейнера выполняются от root. Аргументы UID/GID в development override сохранились, но Dockerfile их больше не использует.
 - Локальный Compose использует PostgreSQL 18, CI — PostgreSQL 15. Учитывай оба окружения при изменении запросов и миграций.
 - Production-файл `docker-compose.ci.yaml` не содержит `build.context`; самостоятельная сборка им не проверена. Не исправляй deployment попутно.
 
@@ -116,7 +117,7 @@ docker compose exec web python manage.py createsuperuser
 - Примеры: `feat(members): добавить фильтрацию по группе`, `fix(auth): исправить обновление токена`, `docs: обновить инструкции для агентов`. Несовместимость обозначай `!` или footer `BREAKING CHANGE:`.
 - Не создавай коммит без запроса и не изменяй чужую работу; проверяй `git status` и diff.
 - В PR и отчёте описывай проблему, результат, проверки и ограничения. Не скрывай неуспешные команды.
-- CI проверяет push в `main`/`dev` и pull request; push в `main` после успешных проверок запускает production-deployment. Не выполняй публикацию как часть обычной локальной проверки.
+- CI проверяет push в `main`/`dev` и pull request; push в `main` после успешных проверок запускает production-deployment и затем `docker system prune -f`. Не выполняй публикацию и очистку Docker как часть обычной локальной проверки.
 
 ## Актуальность документации
 
