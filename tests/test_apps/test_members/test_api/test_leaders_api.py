@@ -4,17 +4,102 @@ from typing import Any, final
 
 import msgspec
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
 from dmr.test import DMRClient
 
 from server.apps.members.logic.value_objects import LeaderIn, LeaderOut
-from server.apps.members.models import Department, Leader, Member
+from server.apps.members.models import Department, Direction, Leader, Member
 
 
 @final
 @pytest.mark.django_db
 class TestLeadersAPI:
     """Тесты API для Руководителей."""
+
+    @pytest.mark.parametrize('authenticated', [False, True])
+    def test_leader_list_access_denied(
+        self,
+        dmr_client: DMRClient,
+        viewer_user: User,
+        auth_headers_viewer: Mapping[str, Any],
+        *,
+        authenticated: bool,
+    ) -> None:
+        """Запрещает чтение списка без JWT или необходимой роли."""
+        viewer_user.groups.clear()
+        headers = auth_headers_viewer if authenticated else {}
+        response = dmr_client.get(
+            reverse('api:members:leaders'),
+            **headers,
+        )
+        expected = (
+            HTTPStatus.FORBIDDEN if authenticated else HTTPStatus.UNAUTHORIZED
+        )
+        assert response.status_code == expected
+
+    def test_leader_list_nested_relations(
+        self,
+        dmr_client: DMRClient,
+        leader: Leader,
+        member: Member,
+        department: Department,
+        auth_headers_viewer: Mapping[str, Any],
+    ) -> None:
+        """Сохраняет вложенные данные и мягкое удаление при чтении Viewer."""
+        direction = Direction.objects.create(name='Другое направление')
+        other_department = Department.objects.create(
+            name='Другой отдел',
+            direction=direction,
+        )
+        deleted_department = Department.objects.create(
+            name='Удалённый отдел',
+            direction=direction,
+        )
+        member.departments.add(
+            department,
+            other_department,
+            deleted_department,
+        )
+        deleted_department.delete()
+        direction.delete()
+        second = Leader.objects.create(
+            member=member,
+            position='Руководитель направления',
+            direction=direction,
+        )
+        deleted_leader = Leader.objects.create(
+            member=member,
+            position='Удалённое назначение',
+        )
+        deleted_leader.delete()
+        member.delete()
+
+        response = dmr_client.get(
+            reverse('api:members:leaders'),
+            **auth_headers_viewer,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        result = msgspec.convert(response.json(), type=list[LeaderOut])
+        assert {item.id for item in result} == {leader.pk, second.pk}
+        for item in result:
+            assert item.member.id == member.pk
+            assert item.member.first_name == member.first_name
+            assert item.member.telegram == member.telegram
+            assert {dep.id for dep in item.member.departments} == {
+                department.pk,
+                other_department.pk,
+            }
+            assert {dep.direction.id for dep in item.member.departments} == {
+                department.direction_id,
+                direction.pk,
+            }
+        by_id = {item.id: item for item in result}
+        assert by_id[leader.pk].department is not None
+        assert by_id[leader.pk].direction is None
+        assert by_id[second.pk].department is None
+        assert by_id[second.pk].direction is not None
 
     def test_leader_create(
         self,
