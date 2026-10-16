@@ -12,26 +12,28 @@ Backend системы для управления активистами Сту
 
 Разработано отделом **ITS Tech** направления ITS BMSTU студенческого совета факультету ИУ МГТУ им. Баумана.
 
+Инструкции для ИИ-ассистентов по архитектуре, стилю кода, проверкам и коммитам находятся в [AGENTS.md](AGENTS.md).
+
 ## Идея проекта
 
 **Цель проекта** — автоматизировать учет и управление структурой студенческой организации. Система предоставляет удобный API для ведения единой базы данных участников, отслеживания их принадлежности к отделам и направлениям, а также управления руководителями.
 
 ## Стек технологий
 
-[![Python 3.13.3](https://img.shields.io/badge/Python-3.13.3-blue)](https://docs.python.org/3.13/)
+[![Python 3.13.13](https://img.shields.io/badge/Python-3.13.13-blue)](https://docs.python.org/3.13/)
 [![wemake.services](https://img.shields.io/badge/%20-wemake.services-green.svg?label=%20&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC%2FxhBQAAAAFzUkdCAK7OHOkAAAAbUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP%2F%2F%2F5TvxDIAAAAIdFJOUwAjRA8xXANAL%2Bv0SAAAADNJREFUGNNjYCAIOJjRBdBFWMkVQeGzcHAwksJnAPPZGOGAASzPzAEHEGVsLExQwE7YswCb7AFZSF3bbAAAAABJRU5ErkJggg%3D%3D)](https://wemake-services.github.io)
 [![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
 [![Modern REST](https://img.shields.io/badge/Modern%20REST-0C4B33?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSIxMDgwIiB2aWV3Qm94PSIwIDAgMTA4MCAxMDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMiA3MDQuMDJMMTQ1LjQ1OSA0NjYuMTlMMjc3Ljg4MyA3MDQuMDJMMTQ1LjQ1OSA5NDEuODQ5TDIgNzA0LjAyWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE0NS40NTkgOTQxLjg0OUwyIDcwNC4wMkgyNzcuODgzTDE0NS40NTkgOTQxLjg0OVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik02NzguOTQ4IDcwNC4wMzVMMzQxLjIzIDEzOEwyMjcuMDcxIDMyOC4yNjRMNDM2LjM2MiA3MDQuMDM1TDMwMy4xNzcgOTQxLjg2NEg1MzYuMjVMNjc4Ljk0OCA3MDQuMDM1WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTY3OC45MzcgNzA0LjAyNkg0MzYuMzVMMzAzLjE2NiA5NDEuODU2SDUzNi4yMzlMNjc4LjkzNyA3MDQuMDI2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEwNzguMTcgNzA0LjAzNUw3NDAuNDUxIDEzOEw2MjYuMjkzIDMyOC4yNjRMODM1LjU4MyA3MDQuMDM1TDcwMi4zOTkgOTQxLjg2NEg5MzUuNDcyTDEwNzguMTcgNzA0LjAzNVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xMDc4LjE3IDcwNC4wMzVIODM1LjU4M0w3MDIuMzk5IDk0MS44NjRIOTM1LjQ3MkwxMDc4LjE3IDcwNC4wMzVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K&color=35544A)](https://github.com/wemake-services/django-modern-rest)
 [![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-336791)](https://www.postgresql.org/docs/18/index.html)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Проект создан на основе шаблона [`wemake-django-template`]((https://github.com/wemake-services/wemake-django-template)). Версия шаблона: [fb03a37](https://github.com/wemake-services/wemake-django-template/tree/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5). Разница с обновлённой версией шаблона [тут]([updated](https://github.com/wemake-services/wemake-django-template/compare/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5...master)).
+Проект создан на основе шаблона [`wemake-django-template`](https://github.com/wemake-services/wemake-django-template). Версия шаблона: [fb03a37](https://github.com/wemake-services/wemake-django-template/tree/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5). Разница с обновлённой версией шаблона [тут](https://github.com/wemake-services/wemake-django-template/compare/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5...master).
 
 **Контейнирезация:** `Docker` и `Docker Compose` последнией версии
 
 **Ядро:**
 
-* `Python 3.13.3`
+* `Python 3.13.13`
 * `Django 6.0.4`
 * `DMR (Django Modern REST) 0.7.0` и `msgspec 0.21.1`
 * `Pydantic 2.13.3`
@@ -336,10 +338,12 @@ uv sync
 ### Корневая директория
 
 * `pyproject.toml` / `uv.lock` — конфигурация пакетов и строгий лок-файл зависимостей для менеджера `uv`.
-* `docker-compose.yml` / `docker-compose.override.yml` — оркестрация контейнеров для разработки.
+* `Dockerfile` — сборка образов для разработки и production.
+* `docker-compose.yaml` / `docker-compose.override.yaml` — оркестрация контейнеров для разработки.
+* `docker-compose.ci.yaml` — конфигурация production-контейнера с внешней БД и томами static/media.
 * `manage.py` — стандартная точка входа для команд Django.
 * `schemathesis.toml` — конфигурация для property-based тестирования API.
-* `.github/workflows/test.yml` — пайплайн непрерывной интеграции (CI) для автоматического запуска тестов и линтеров.
+* `.github/workflows/initiative.yaml` — проверки Ruff, Mypy и Pytest; после успешных проверок push в `main` запускает развёртывание и очистку неиспользуемых ресурсов Docker через `docker system prune -f`.
 
 ### `config/`
 
@@ -350,10 +354,11 @@ uv sync
 
 ### `docker/`
 
-Вся инфраструктура для сборки контейнеров.
+Скрипты запуска и проверки состояния контейнера. Dockerfile находится в корне проекта.
 
-* `django/` — Dockerfile, скрипты инициализации (`entrypoint.sh`), настройки Gunicorn для backend-сервера.
-* `caddy/` — настройки веб-сервера (если используется для раздачи статики в prod).
+* `entrypoint.sh` — выполнение команды контейнера через Tini.
+* `gunicorn.sh` / `gunicorn_config.py` — production-запуск и настройки Gunicorn.
+* `healthcheck.sh` — проверка доступности `/health/`.
 
 ### `server/` (Ядро приложения)
 
