@@ -3,10 +3,15 @@ from contextlib import AbstractContextManager
 from unittest.mock import patch
 
 import pytest
-from django.db import IntegrityError
+from django.db import IntegrityError, connection
+from django.test.utils import CaptureQueriesContext
 
 from server.apps.members.infra.mappers import (
+    DepartmentMapper,
+    DirectionMapper,
+    LeaderMapper,
     MemberListMapper,
+    MemberMapper,
     StructureDepartmentMapper,
     StructureDirectionMapper,
     StructureLeaderMapper,
@@ -157,6 +162,73 @@ class TestDepartmentRepo:
 @pytest.mark.django_db
 class TestLeaderRepo:
     """Тесты для LeaderRepo."""
+
+    @pytest.mark.parametrize('count', [1, 5, 20])
+    def test_get_all_without_mapping_queries(
+        self,
+        count: int,
+        member: Member,
+        department: Department,
+        django_assert_num_queries: Callable[
+            [int],
+            AbstractContextManager[None],
+        ],
+    ) -> None:
+        """Загружает все вложенные связи за постоянное число запросов."""
+        second_direction = Direction.objects.create(name='Другое направление')
+        second_department = Department.objects.create(
+            name='Другой отдел',
+            direction=second_direction,
+        )
+        member.departments.add(department, second_department)
+        for index in range(count):
+            Leader.objects.create(
+                member=member,
+                position=f'Должность {index}',
+                department=department if index % 4 in {0, 2} else None,
+                direction=second_direction if index % 4 in {1, 2} else None,
+            )
+        direction_mapper = DirectionMapper()
+        department_mapper = DepartmentMapper(direction_mapper)
+        mapper = LeaderMapper(
+            MemberMapper(department_mapper),
+            department_mapper,
+            direction_mapper,
+        )
+        with CaptureQueriesContext(connection) as queries:
+            leaders = LeaderRepo().get_all()
+        with django_assert_num_queries(0):
+            result = [mapper(item) for item in leaders]
+        assert len(queries) == 2
+        assert len(result) == count
+        for item in result:
+            assert item.member.id == member.pk
+            assert {dep.id for dep in item.member.departments} == {
+                department.pk,
+                second_department.pk,
+            }
+            assert {dep.direction.id for dep in item.member.departments} == {
+                department.direction_id,
+                second_direction.pk,
+            }
+            original = next(lead for lead in leaders if lead.pk == item.id)
+            assert (item.department.id if item.department else None) == (
+                original.department_id
+            )
+            assert (item.direction.id if item.direction else None) == (
+                original.direction_id
+            )
+
+    def test_get_all_empty(
+        self,
+        django_assert_num_queries: Callable[
+            [int],
+            AbstractContextManager[None],
+        ],
+    ) -> None:
+        """Загружает пустой список без запросов вложенных связей."""
+        with django_assert_num_queries(1):
+            assert LeaderRepo().get_all() == []
 
     def test_create_leader_department(
         self,

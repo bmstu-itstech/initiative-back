@@ -6,7 +6,7 @@ import attrs
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
-from django.db.models import F, Q, Value
+from django.db.models import F, Prefetch, Q, Value
 from django.db.models.functions import Concat
 
 from server.apps.members.logic import exceptions
@@ -219,7 +219,12 @@ class LeaderRepo:
                 'member',
                 'department__direction',
                 'direction',
-            ).all(),
+            ).prefetch_related(
+                Prefetch(
+                    'member__departments',
+                    queryset=Department.objects.select_related('direction'),
+                ),
+            ),
         )
 
     def get_by_id(self, leader_id: int) -> Leader:
