@@ -77,54 +77,42 @@ def leader_in() -> LeaderIn:
 @pytest.fixture
 def direction(faker: Faker) -> Direction:
     """Создает фейковую инстанцию сущности Direction в БД."""
-    return cast(
-        Direction,
-        Direction.objects.create(name=faker.company()[:32]),
-    )
+    return Direction.objects.create(name=faker.company()[:32])
 
 
 @pytest.fixture
 def department(faker: Faker, direction: Direction) -> Department:
     """Создает фейковую инстанцию сущности Department в БД."""
-    return cast(
-        Department,
-        Department.objects.create(
-            name=faker.department()[:32]
-            if hasattr(faker, 'department')
-            else faker.job()[:32],
-            direction=direction,
-        ),
+    return Department.objects.create(
+        name=faker.department()[:32]
+        if hasattr(faker, 'department')
+        else faker.job()[:32],
+        direction=direction,
     )
 
 
 @pytest.fixture
 def member(faker: Faker) -> Member:
     """Создает фейковую инстанцию сущности Member в БД."""
-    return cast(
-        Member,
-        Member.objects.create(
-            first_name=faker.first_name()[:64],
-            last_name=faker.last_name()[:64],
-            patronymic=faker.middle_name()[:64]
-            if hasattr(faker, 'middle_name')
-            else '',
-            group=f'ИУ5-{random.randint(1, 9)}{random.randint(1, 9)}Б',  # noqa: S311, RUF001
-            telegram=MemberInFactory.build().telegram,
-            birth_date=faker.date_of_birth(minimum_age=17, maximum_age=25),
-        ),
+    return Member.objects.create(
+        first_name=faker.first_name()[:64],
+        last_name=faker.last_name()[:64],
+        patronymic=faker.middle_name()[:64]
+        if hasattr(faker, 'middle_name')
+        else '',
+        group=f'ИУ5-{random.randint(1, 9)}{random.randint(1, 9)}Б',  # noqa: S311, RUF001
+        telegram=MemberInFactory.build().telegram,
+        birth_date=faker.date_of_birth(minimum_age=17, maximum_age=25),
     )
 
 
 @pytest.fixture
 def leader(faker: Faker, member: Member, department: Department) -> Leader:
     """Создает фейковую инстанцию сущности Leader в БД."""
-    return cast(
-        Leader,
-        Leader.objects.create(
-            member=member,
-            position=faker.job()[:32],
-            department=department,
-        ),
+    return Leader.objects.create(
+        member=member,
+        position=faker.job()[:32],
+        department=department,
     )
 
 
@@ -135,13 +123,10 @@ def leader_direction(
     direction: Direction,
 ) -> Leader:
     """Создает фейковую инстанцию сущности Leader в БД."""
-    return cast(
-        Leader,
-        Leader.objects.create(
-            member=member,
-            position=faker.job()[:32],
-            direction=direction,
-        ),
+    return Leader.objects.create(
+        member=member,
+        position=faker.job()[:32],
+        direction=direction,
     )
 
 

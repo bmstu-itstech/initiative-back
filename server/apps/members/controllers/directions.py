@@ -25,10 +25,9 @@ from server.apps.members.logic.usecases.directions import (
 from server.apps.members.logic.value_objects import (
     DirectionIn,
     DirectionOut,
-    ErrorResponse,
-    SuccessResponse,
 )
 from server.common.di import HasContainer
+from server.common.value_objects import ErrorResponse, SuccessResponse
 
 
 @final

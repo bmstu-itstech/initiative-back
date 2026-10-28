@@ -9,9 +9,9 @@ from django.urls import reverse
 from dmr.parsers import JsonParser
 from dmr.test import DMRClient
 
-from server.apps.members.controllers.members import FallbackHtmlRenderer
 from server.apps.members.logic.value_objects import MemberIn, MemberOut
 from server.apps.members.models import Department, Direction, Leader, Member
+from server.common.django.renderers import FallbackHtmlRenderer
 
 
 @final

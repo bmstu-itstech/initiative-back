@@ -9,6 +9,7 @@ classifiers = [
   "Private :: Do not Upload",
 ]
 dependencies = [
+  "PyJWT>=2.12,<3.0",
   "django[argon2]>=6.0.4,<6.1",
   "django-cors-headers>=4.0,<5.0",
   "django-split-settings>=1.3,<2.0",
@@ -255,6 +256,8 @@ explicit_package_bases = true
 ignore_missing_imports = true
 local_partial_types = true
 strict = true
+# Виртуальные окружения, включая каталоги SDK с Windows/WSL-путями.
+exclude = '(^|[\\/])\.venv([\\/]|$)'
 strict_bytes = true
 warn_unreachable = true
 
@@ -296,4 +299,5 @@ DEP003 = [
 # Dev dependencies referenced from application code
 DEP004 = [
   "debug_toolbar",     # DEBUG urls/settings
+  "zeal",              # Необязательный development-инструмент, импорт с fallback
 ]

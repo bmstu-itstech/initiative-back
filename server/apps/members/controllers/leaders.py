@@ -23,12 +23,11 @@ from server.apps.members.logic.usecases.leaders import (
     UpdateLeader,
 )
 from server.apps.members.logic.value_objects import (
-    ErrorResponse,
     LeaderIn,
     LeaderOut,
-    SuccessResponse,
 )
 from server.common.di import HasContainer
+from server.common.value_objects import ErrorResponse, SuccessResponse
 
 
 @final
