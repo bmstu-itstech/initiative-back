@@ -1,7 +1,5 @@
-import json
-from collections.abc import Callable
 from http import HTTPStatus
-from typing import Any, final, override
+from typing import final, override
 
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -11,9 +9,8 @@ from dmr.endpoint import Endpoint, validate
 from dmr.errors import ErrorType
 from dmr.files import FileResponseSpec
 from dmr.metadata import ResponseSpec
-from dmr.parsers import JsonParser, Parser
 from dmr.plugins.msgspec import MsgspecSerializer
-from dmr.renderers import FileRenderer, JsonRenderer, Renderer
+from dmr.renderers import FileRenderer, JsonRenderer
 from dmr.security import AuthenticatedHttpRequest
 from dmr.security.jwt.auth import JWTSyncAuth
 
@@ -33,14 +30,14 @@ from server.apps.members.logic.usecases.members import (
     UpdateMember,
 )
 from server.apps.members.logic.value_objects import (
-    ErrorResponse,
     MemberIn,
     MemberListOut,
     MemberOut,
     StructureDirectionOut,
-    SuccessResponse,
 )
 from server.common.di import HasContainer
+from server.common.django.renderers import FallbackHtmlRenderer
+from server.common.value_objects import ErrorResponse, SuccessResponse
 
 
 @final
@@ -249,32 +246,6 @@ class DirectionMembersController(
             self.kwargs['direction_id'],
         )
         return self.to_response(result, status_code=HTTPStatus.OK)
-
-
-class FallbackHtmlRenderer(Renderer):
-    """
-    Архитектурный фикс (Content Negotiation) для браузерных запросов.
-
-    Перехватывает заголовок Accept: text/html и отдает ошибки в
-    виде JSON, предотвращая падение DMR с KeyError('text/html').
-    """  # noqa: RUF002
-
-    content_type = 'text/html'
-
-    @override
-    def render(
-        self,
-        to_serialize: Any,
-        serializer_hook: Callable[[Any], Any],
-    ) -> bytes:
-        """Сериализует ответ в JSON для браузера."""
-        return json.dumps(to_serialize, default=serializer_hook).encode('utf-8')
-
-    @property
-    @override
-    def validation_parser(self) -> Parser:
-        """Возвращает парсер для валидации сгенерированного ответа."""
-        return JsonParser()
 
 
 @final

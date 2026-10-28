@@ -1,13 +1,4 @@
-from typing import Annotated
-
-import msgspec
-
-
-class PaginationQuery(msgspec.Struct):
-    """Параметры пагинации."""
-
-    limit: Annotated[int, msgspec.Meta(ge=1, le=1000)] = 20
-    offset: Annotated[int, msgspec.Meta(ge=0, le=2147483647)] = 0
+from server.common.queries import PaginationQuery
 
 
 class MemberFilterQuery(PaginationQuery):

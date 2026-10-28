@@ -97,4 +97,27 @@ def populate_dependencies(container: punq.Container) -> punq.Container:
     _inject_django(container)
     # Apps:
     _inject_members(container)
+    _inject_events(container)
     return container
+
+
+def _inject_events(container: punq.Container) -> None:
+    from server.apps.events.infra import mappers
+    from server.apps.events.infra.repository import EventRepo
+    from server.apps.events.logic.usecases import events, exports
+
+    inject = _create_injector(container, locals())  # noqa: WPS421
+    container.register(EventRepo)
+    container.register(mappers.EventListMapper)
+    container.register(mappers.EventMapper)
+    container.register(mappers.MemberEventMapper)
+    container.register(mappers.EventExportMapper)
+    container.register(mappers.EventOrganizerExportMapper)
+    container.register(inject(events.GetEventList))
+    container.register(inject(events.GetEvent))
+    container.register(inject(events.CreateEvent))
+    container.register(inject(events.UpdateEvent))
+    container.register(inject(events.DeleteEvent))
+    container.register(inject(events.GetMemberEvents))
+    container.register(inject(exports.ExportEventsCsv))
+    container.register(inject(exports.ExportEventOrganizersCsv))

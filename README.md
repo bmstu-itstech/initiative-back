@@ -12,26 +12,28 @@ Backend системы для управления активистами Сту
 
 Разработано отделом **ITS Tech** направления ITS BMSTU студенческого совета факультету ИУ МГТУ им. Баумана.
 
+Инструкции для ИИ-ассистентов по архитектуре, стилю кода, проверкам и коммитам находятся в [AGENTS.md](AGENTS.md).
+
 ## Идея проекта
 
 **Цель проекта** — автоматизировать учет и управление структурой студенческой организации. Система предоставляет удобный API для ведения единой базы данных участников, отслеживания их принадлежности к отделам и направлениям, а также управления руководителями.
 
 ## Стек технологий
 
-[![Python 3.13.3](https://img.shields.io/badge/Python-3.13.3-blue)](https://docs.python.org/3.13/)
+[![Python 3.13.13](https://img.shields.io/badge/Python-3.13.13-blue)](https://docs.python.org/3.13/)
 [![wemake.services](https://img.shields.io/badge/%20-wemake.services-green.svg?label=%20&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC%2FxhBQAAAAFzUkdCAK7OHOkAAAAbUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP%2F%2F%2F5TvxDIAAAAIdFJOUwAjRA8xXANAL%2Bv0SAAAADNJREFUGNNjYCAIOJjRBdBFWMkVQeGzcHAwksJnAPPZGOGAASzPzAEHEGVsLExQwE7YswCb7AFZSF3bbAAAAABJRU5ErkJggg%3D%3D)](https://wemake-services.github.io)
 [![wemake-python-styleguide](https://img.shields.io/badge/style-wemake-000000.svg)](https://github.com/wemake-services/wemake-python-styleguide)
 [![Modern REST](https://img.shields.io/badge/Modern%20REST-0C4B33?logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTA4MCIgaGVpZ2h0PSIxMDgwIiB2aWV3Qm94PSIwIDAgMTA4MCAxMDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMiA3MDQuMDJMMTQ1LjQ1OSA0NjYuMTlMMjc3Ljg4MyA3MDQuMDJMMTQ1LjQ1OSA5NDEuODQ5TDIgNzA0LjAyWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTE0NS40NTkgOTQxLjg0OUwyIDcwNC4wMkgyNzcuODgzTDE0NS40NTkgOTQxLjg0OVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik02NzguOTQ4IDcwNC4wMzVMMzQxLjIzIDEzOEwyMjcuMDcxIDMyOC4yNjRMNDM2LjM2MiA3MDQuMDM1TDMwMy4xNzcgOTQxLjg2NEg1MzYuMjVMNjc4Ljk0OCA3MDQuMDM1WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTY3OC45MzcgNzA0LjAyNkg0MzYuMzVMMzAzLjE2NiA5NDEuODU2SDUzNi4yMzlMNjc4LjkzNyA3MDQuMDI2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTEwNzguMTcgNzA0LjAzNUw3NDAuNDUxIDEzOEw2MjYuMjkzIDMyOC4yNjRMODM1LjU4MyA3MDQuMDM1TDcwMi4zOTkgOTQxLjg2NEg5MzUuNDcyTDEwNzguMTcgNzA0LjAzNVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xMDc4LjE3IDcwNC4wMzVIODM1LjU4M0w3MDIuMzk5IDk0MS44NjRIOTM1LjQ3MkwxMDc4LjE3IDcwNC4wMzVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K&color=35544A)](https://github.com/wemake-services/django-modern-rest)
 [![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-336791)](https://www.postgresql.org/docs/18/index.html)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Проект создан на основе шаблона [`wemake-django-template`]((https://github.com/wemake-services/wemake-django-template)). Версия шаблона: [fb03a37](https://github.com/wemake-services/wemake-django-template/tree/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5). Разница с обновлённой версией шаблона [тут]([updated](https://github.com/wemake-services/wemake-django-template/compare/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5...master)).
+Проект создан на основе шаблона [`wemake-django-template`](https://github.com/wemake-services/wemake-django-template). Версия шаблона: [fb03a37](https://github.com/wemake-services/wemake-django-template/tree/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5). Разница с обновлённой версией шаблона [тут](https://github.com/wemake-services/wemake-django-template/compare/fb03a37fbc9282dc8a521c2b620ab8e3e68a01b5...master).
 
 **Контейнирезация:** `Docker` и `Docker Compose` последнией версии
 
 **Ядро:**
 
-* `Python 3.13.3`
+* `Python 3.13.13`
 * `Django 6.0.4`
 * `DMR (Django Modern REST) 0.7.0` и `msgspec 0.21.1`
 * `Pydantic 2.13.3`
@@ -159,7 +161,7 @@ uv sync
 | `telegram` | Строка | Да | 5 - 32 симв. | - | RegEx: `^[a-zA-Z0-9_]{5,32}$` (без `@`) |
 | `group` | Строка | Нет | до 32 симв. | `""` (пустая строка) | RegEx: форматы групп МГТУ (напр. *ИУ5-41Б*) |
 | `birth_date` | Дата (YYYY-MM-DD) | Нет | - | `null` | - |
-| `join_date` | Дата (YYYY-MM-DD) | Да* | - | Auto (текущая) | *Только для чтения. Заполняется сервером. |
+| `join_date` | Дата (YYYY-MM-DD) | Нет | - | Текущая дата | Можно передать при создании и обновлении |
 | `departments` | Массив чисел | Нет | - | `[]` (пустой массив) | Массив `id` существующих отделов |
 
 **Бизнес-правила:**
@@ -212,6 +214,56 @@ uv sync
 * **Уникальность должности (в Отделе):** Пара `(position, department_id)` уникальна.
 * **Уникальность должности (в Направлении):** Пара `(position, direction_id)` уникальна.
 
+### Мероприятие (`Event`)
+
+Модуль реализован отдельным Django-приложением `server/apps/events/`
+со своими моделями, миграциями, API и тестами. Назначения оргкомитета
+ссылаются на активистов приложения `members`.
+
+Мероприятие содержит название (1–64 символа), начало и конец с часовым
+поясом, описание (до 512 символов, по умолчанию пустая строка), список мест
+(каждое до 64 символов) и оргкомитет. Начало не может быть позже конца.
+Списки мест и оргкомитета могут быть пустыми. Названия мероприятий не обязаны
+быть уникальными.
+
+Назначение в оргкомитет — активист `Member` и строковая роль (1–64 символа).
+Один активист может занимать несколько ролей, одну роль — несколько активистов.
+Повторение одной тройки мероприятие–активист–роль запрещено.
+
+| Метод | URL | Назначение |
+| --- | --- | --- |
+| GET, POST | `/api/events/` | Список без оргкомитетов; создание |
+| GET, PUT, DELETE | `/api/events/{id}/` | Карточка, полная замена, мягкое удаление |
+| GET | `/api/members/{id}/events/` | Роли активиста с краткими мероприятиями |
+| GET | `/api/events/export/` | CSV всех активных мероприятий |
+| GET | `/api/events/{id}/organizers/export/` | CSV оргкомитета мероприятия |
+
+При записи оргкомитет передаётся как `organizers: [{member_id, role}]`.
+Карточка возвращает `organizers: [{member, role}]`, где `member` содержит
+краткие данные активиста без отделов. PUT полностью заменяет оргкомитет;
+на уровне БД изменяются только отличающиеся назначения, а неизменившиеся
+сохраняются. Для карточки и CSV используются проекции нужных полей без
+создания отдельной ORM-модели на каждое назначение.
+Отсутствующие `description`, `locations`, `organizers` получают значения
+`""`, `[]`, `[]`. Описание не принимает `null`.
+
+Оба списка поддерживают `limit` (по умолчанию 20, максимум 1000), `offset`
+и `sort_by=starts_at|-starts_at` (по умолчанию `-starts_at`). Общий список
+поддерживает нечёткий поиск `search` по названию. Список активиста содержит
+отдельную запись `{event, role}` на каждую роль, без вложенного оргкомитета.
+
+CSV использует `;` и UTF-8 BOM. Экспорт мероприятий не ограничен пагинацией,
+содержит `id,name,starts_at,ends_at,description,locations`; места записываются
+JSON-массивом в одной ячейке. Экспорт оргкомитета содержит
+`id,full_name,group,role`, где ID принадлежит активисту. Строки, начинающиеся
+со знаков формул или управляющих пробельных символов, получают начальный
+апостроф для безопасного открытия в табличном редакторе. Удалённые мероприятия
+и активисты скрыты из соответствующих ответов и выгрузок; назначения
+сохраняются при мягком удалении. Просмотр и экспорт доступны Viewer, Editor
+и Admin; изменения — Editor и Admin. Суперпользователь имеет полный доступ.
+Успешная выгрузка возвращает `Content-Type: text/csv; charset=utf-8`,
+ошибки выгрузки — `application/json`, включая запросы с `Accept: text/csv`.
+
 ## Роли
 
 Система использует ролевую модель доступа (Role-Based Access Control) на базе стандартных групп Django (`django.contrib.auth.models.Group`).
@@ -238,8 +290,11 @@ uv sync
 **Разрешено:**
 
 * Все права роли `Editor`.
-* Управление учетными записями пользователей (выдача логинов/паролей).
-* Назначение ролей (`Viewer`/`Editor`/`Admin`) другим пользователям.
+
+Группа `Admin` предоставляет права бизнес-API. Управление учётными записями
+и назначение групп выполняются через Django admin: отдельно требуются
+`is_staff` и соответствующие разрешения Django. Членство в группе `Admin`
+само по себе их не предоставляет.
 
 ## Маршруты
 
@@ -261,6 +316,7 @@ uv sync
 | Метод | Маршрут | Описание |
 | --- | --- | --- |
 | `GET` | `/api/members/` | Получение списка всех активистов (с пагинацией, фильтрацией и поиском). |
+| `GET` | `/api/members/export/` | CSV активистов с учётом фильтров. |
 | `POST` | `/api/members/` | Создание нового профиля активиста. |
 | `GET` | `/api/members/{member_id}/` | Получение детальной информации об активисте по ID. |
 | `PUT` | `/api/members/{member_id}/` | Обновление данных активиста. |
@@ -279,6 +335,8 @@ uv sync
 | `GET` | `/api/members/directions/{direction_id}/` | Детальная информация о направлении. |
 | `PUT` | `/api/members/directions/{direction_id}/` | Обновление названия направления. |
 | `DELETE` | `/api/members/directions/{direction_id}/` | Удаление направления. |
+
+Дерево направлений, отделов и руководителей: `GET /api/members/structure/`.
 
 ### Отделы (`/api/members/departments/`)
 
@@ -336,10 +394,12 @@ uv sync
 ### Корневая директория
 
 * `pyproject.toml` / `uv.lock` — конфигурация пакетов и строгий лок-файл зависимостей для менеджера `uv`.
-* `docker-compose.yml` / `docker-compose.override.yml` — оркестрация контейнеров для разработки.
+* `Dockerfile` — сборка образов для разработки и production.
+* `docker-compose.yaml` / `docker-compose.override.yaml` — оркестрация контейнеров для разработки.
+* `docker-compose.ci.yaml` — конфигурация production-контейнера с внешней БД и томами static/media.
 * `manage.py` — стандартная точка входа для команд Django.
 * `schemathesis.toml` — конфигурация для property-based тестирования API.
-* `.github/workflows/test.yml` — пайплайн непрерывной интеграции (CI) для автоматического запуска тестов и линтеров.
+* `.github/workflows/initiative.yaml` — проверки Ruff, Mypy и Pytest; после успешных проверок push в `main` запускает развёртывание и очистку неиспользуемых ресурсов Docker через `docker system prune -f`.
 
 ### `config/`
 
@@ -350,10 +410,11 @@ uv sync
 
 ### `docker/`
 
-Вся инфраструктура для сборки контейнеров.
+Скрипты запуска и проверки состояния контейнера. Dockerfile находится в корне проекта.
 
-* `django/` — Dockerfile, скрипты инициализации (`entrypoint.sh`), настройки Gunicorn для backend-сервера.
-* `caddy/` — настройки веб-сервера (если используется для раздачи статики в prod).
+* `entrypoint.sh` — выполнение команды контейнера через Tini.
+* `gunicorn.sh` / `gunicorn_config.py` — production-запуск и настройки Gunicorn.
+* `healthcheck.sh` — проверка доступности `/health/`.
 
 ### `server/` (Ядро приложения)
 
@@ -361,7 +422,7 @@ uv sync
 
 * `settings/` — настройки разбиты по компонентам (`api.py`, `caches.py`, `logging.py`) и окружениям (`development.py`, `production.py`) с помощью `django-split-settings`.
 * `urls.py` — корневой роутер проекта.
-* `common/` — общие утилиты и DI-контейнеры (Dependency Injection).
+* `common/` — DI, общие DTO ответов и пагинация, базовая модель мягкого удаления, типизированный manager и renderer.
 
 #### `server/apps/` (Бизнес-домены)
 
@@ -376,13 +437,24 @@ uv sync
 
 * `models.py` / `migrations/` — схемы таблиц БД и миграции.
 * `controllers/` — слой API (обработчики HTTP-запросов, роутинг).
-* `logic/` — ядро бизнес-логики, не зависящее от БД:
+* `logic/` — DTO, параметры запросов, исключения и сценарии:
   * `usecases/` — сценарии использования (создание, удаление, выдача ролей).
   * `value_objects.py` — схемы `msgspec` (`...In` / `...Out`) для валидации контрактов.
   * `exceptions.py` — кастомные доменные ошибки.
 * `infra/` — слой работы с данными:
 * `repository.py` — инкапсуляция ORM-запросов (паттерн Репозиторий).
 * `mappers.py` — преобразование моделей ORM в Value Objects.
+
+**3. `events/` (Мероприятия):**
+
+* Собственные модели, миграции, администрирование и HTTP-контроллеры.
+* `logic/usecases/` — сценарии CRUD, членств и CSV-экспорта.
+* `infra/` — чтение мероприятий, запись, синхронизация назначений и мапперы.
+* Участник оргкомитета ссылается на профиль `Member`; роль хранится строкой.
+
+В обоих предметных приложениях сценарии зависят от конкретных репозиториев
+и мапперов `infra`. Зависимости регистрируются в `server/implemented.py`
+через Punq. Контроллеры не выполняют ORM-запросы и преобразования моделей.
 
 ### `tests/`
 
@@ -392,5 +464,6 @@ uv sync
 * `test_apps/` — функциональные и юнит-тесты приложений:
   * `test_factories.py` / `test_fixtures.py` — генерация мок-данных через Polyfactory.
   * `test_members/test_api/` — проверка API-рутов и кодов ответа.
+  * `test_events/` — API и OpenAPI мероприятий, репозитории, модели, миграция и администрирование.
   * `test_members/test_logic/` — изоляция бизнес-правил.
   * `test_members/test_models/test_migrations.py` — проверка целостности и отката миграций БД (в т.ч. дедупликация данных при изменении схем).

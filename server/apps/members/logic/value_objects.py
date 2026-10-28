@@ -7,26 +7,6 @@ GROUP_REGEX = r'^$|^((((ИУ|ИБМ|МТ|СМ|БМТ|РЛ|Э|РК|ФН|Л|СГН
 TELEGRAM_REGEX = r'^[a-zA-Z0-9_]{5,32}$'
 
 
-class ErrorDetail(msgspec.Struct):
-    """Детальная информация об ошибке."""  # noqa: RUF002
-
-    msg: str
-    type: str
-
-
-class ErrorResponse(msgspec.Struct):
-    """Стандартная схема ответа с ошибкой."""  # noqa: RUF002
-
-    detail: list[ErrorDetail]
-
-
-class SuccessResponse(msgspec.Struct):
-    """Стандартная схема успешного ответа без данных."""
-
-    status: str
-    message: str
-
-
 class DirectionIn(msgspec.Struct):
     """Схема входящих данных для Направления."""
 
