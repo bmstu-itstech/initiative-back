@@ -28,6 +28,8 @@ from dmr.routing import Router, build_404_handler, build_500_handler, path
 from health_check.views import HealthCheckView
 
 from server.apps.auth.controllers.urls import router as auth_router
+from server.apps.events.controllers.events import MemberEventsController
+from server.apps.events.controllers.urls import router as events_router
 from server.apps.members.controllers.urls import router as members_router
 
 admin.autodiscover()
@@ -35,6 +37,15 @@ admin.autodiscover()
 router = Router(
     'api/',
     [
+        path(
+            'members/<int:member_id>/events/',
+            MemberEventsController.as_view(),
+            name='member_events',
+        ),
+        path(
+            'events/',
+            include((events_router.urls, 'events'), namespace='events'),
+        ),
         path(
             'auth/',
             include((auth_router.urls, 'auth'), namespace='auth'),

@@ -65,13 +65,13 @@ class TestDirectionRepo:
         ],
     ) -> None:
         """Проверяет загрузку структуры и преобразование без лишних запросов."""
-        department.members.add(member)  # type: ignore[attr-defined]
+        member.departments.add(department)
         second_direction = Direction.objects.create(name='Second direction')
         second_department = Department.objects.create(
             name='Second department',
             direction=second_direction,
         )
-        second_department.members.add(member)
+        member.departments.add(second_department)
         direction_leader = Leader.objects.create(
             member=member,
             position='Direction head',

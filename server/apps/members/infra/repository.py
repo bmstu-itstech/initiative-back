@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from contextlib import nullcontext
-from typing import NoReturn, cast, final
+from typing import NoReturn, final
 
 import attrs
 from django.contrib.postgres.search import TrigramSimilarity
@@ -47,7 +47,7 @@ class DirectionRepo:
     def get_by_id(self, direction_id: int) -> Direction:
         """Получение направления по ID."""
         try:
-            return cast(Direction, Direction.objects.get(id=direction_id))
+            return Direction.objects.get(id=direction_id)
         except Direction.DoesNotExist:
             raise exceptions.ObjectNotFoundError(
                 'Направление не найдено.',
@@ -100,7 +100,7 @@ class DirectionRepo:
     def create(self, name: str) -> Direction:
         """Создает новое направление."""
         try:
-            return cast(Direction, Direction.objects.create(name=name))
+            return Direction.objects.create(name=name)
         except IntegrityError:
             raise exceptions.ObjectAlreadyExistsError(
                 'Направление с таким названием уже существует.',  # noqa: RUF001
@@ -135,11 +135,8 @@ class DepartmentRepo:
     def get_by_id(self, department_id: int) -> Department:
         """Получение отдела по ID."""
         try:
-            return cast(
-                Department,
-                Department.objects.select_related('direction').get(
-                    id=department_id,
-                ),
+            return Department.objects.select_related('direction').get(
+                id=department_id,
             )
         except Department.DoesNotExist:
             raise exceptions.ObjectNotFoundError('Отдел не найден.') from None
@@ -152,9 +149,9 @@ class DepartmentRepo:
                 '(возможно, неверный ID направления).',
             )
         try:
-            department = cast(
-                Department,
-                Department.objects.create(name=name, direction_id=direction_id),
+            department = Department.objects.create(
+                name=name,
+                direction_id=direction_id,
             )
             _ = department.direction
         except IntegrityError as e:
@@ -230,14 +227,11 @@ class LeaderRepo:
     def get_by_id(self, leader_id: int) -> Leader:
         """Получение руководителя по ID."""
         try:
-            return cast(
-                Leader,
-                Leader.objects.select_related(
-                    'member',
-                    'department__direction',
-                    'direction',
-                ).get(id=leader_id),
-            )
+            return Leader.objects.select_related(
+                'member',
+                'department__direction',
+                'direction',
+            ).get(id=leader_id)
         except Leader.DoesNotExist:
             raise exceptions.ObjectNotFoundError(
                 'Руководитель не найден.',
@@ -253,14 +247,11 @@ class LeaderRepo:
         """Создает нового руководителя с атомарной проверкой связей."""  # noqa: RUF002
         try:
             with transaction.atomic():
-                leader = cast(
-                    Leader,
-                    Leader.objects.create(
-                        member_id=member_id,
-                        position=position,
-                        department_id=department_id,
-                        direction_id=direction_id,
-                    ),
+                leader = Leader.objects.create(
+                    member_id=member_id,
+                    position=position,
+                    department_id=department_id,
+                    direction_id=direction_id,
                 )
                 _ = leader.member
                 if leader.department:
@@ -376,11 +367,10 @@ class MemberRepo:
     def get_by_id(self, member_id: int) -> Member:
         """Получение активиста по ID."""
         try:
-            return cast(
-                Member,
-                Member.objects.prefetch_related('departments__direction').get(
-                    id=member_id,
-                ),
+            return Member.objects.prefetch_related(
+                'departments__direction',
+            ).get(
+                id=member_id,
             )
         except Member.DoesNotExist:
             raise exceptions.ObjectNotFoundError(
@@ -415,16 +405,13 @@ class MemberRepo:
         """Создает нового активиста."""
         try:
             with transaction.atomic():
-                member = cast(
-                    Member,
-                    Member.objects.create(
-                        first_name=data.first_name,
-                        last_name=data.last_name,
-                        patronymic=data.patronymic or '',
-                        telegram=data.telegram,
-                        group=data.group or '',
-                        birth_date=data.birth_date,
-                    ),
+                member = Member.objects.create(
+                    first_name=data.first_name,
+                    last_name=data.last_name,
+                    patronymic=data.patronymic or '',
+                    telegram=data.telegram,
+                    group=data.group or '',
+                    birth_date=data.birth_date,
                 )
 
                 if data.join_date:

@@ -1,10 +1,9 @@
-from typing import Any, ClassVar, override
+from typing import ClassVar, override
 
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils import timezone
 
-from server.apps.members.managers import ActiveManager
+from server.common.django.models import SoftDeleteModel
 
 UNIQUE_ACTIVE_FIO = 'unique_active_fio'
 UNIQUE_ACTIVE_TELEGRAM = 'unique_active_telegram'
@@ -13,44 +12,6 @@ UNIQUE_ACTIVE_DEPARTMENT_IN_DIRECTION = 'unique_active_department_in_direction'
 UNIQUE_ACTIVE_POSITION_IN_DEPARTMENT = 'unique_active_position_in_department'
 UNIQUE_ACTIVE_POSITION_IN_DIRECTION = 'unique_active_position_in_direction'
 CHECK_LEADER_BELONGS_TO_ONE_UNIT = 'check_leader_belongs_to_one_unit'
-
-
-class SoftDeleteModel(models.Model):
-    """Абстрактная модель с поддержкой мягкого удаления."""  # noqa: RUF002
-
-    deleted_at = models.DateTimeField(
-        default=None,
-        null=True,
-        blank=True,
-        verbose_name='Дата удаления',
-    )
-
-    objects = ActiveManager()
-    all_objects = models.Manager['SoftDeleteModel']()
-
-    class Meta:
-        abstract = True
-
-    @property
-    def is_deleted(self) -> bool:
-        """Свойство, вычисляемое на лету."""
-        return self.deleted_at is not None
-
-    @override
-    def delete(
-        self,
-        using: str | None = None,
-        keep_parents: bool = False,
-    ) -> tuple[int, dict[str, int]]:
-        """Переопределение базового удаления."""
-        self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at'])
-        return (1, {self._meta.label: 1})
-
-    def restore(self) -> None:
-        """Восстановление записи."""
-        self.deleted_at = None
-        self.save(update_fields=['deleted_at'])
 
 
 class Member(SoftDeleteModel):
@@ -88,11 +49,13 @@ class Member(SoftDeleteModel):
         verbose_name='Дата вступления',
     )
 
-    departments: models.ManyToManyField[Any, Any] = models.ManyToManyField(
-        'Department',
-        related_name='members',
-        blank=True,
-        verbose_name='Отделы',
+    departments: models.ManyToManyField['Department', models.Model] = (
+        models.ManyToManyField(
+            'Department',
+            related_name='members',
+            blank=True,
+            verbose_name='Отделы',
+        )
     )
 
     class Meta:
